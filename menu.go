@@ -76,7 +76,7 @@ func (menu *Menu) CreateMenus(req MenuCreate) error {
 
 	menusSlug = strings.Trim(menusSlug, "-")
 
-	menus.Slug = menusSlug
+	menus.SlugName = menusSlug
 
 	menus.Description = req.Description
 
@@ -90,6 +90,8 @@ func (menu *Menu) CreateMenus(req MenuCreate) error {
 
 	menus.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
+	menus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
 	err := menumodel.CreateMenus(&menus, menu.DB)
 
 	if err != nil {
@@ -102,7 +104,7 @@ func (menu *Menu) CreateMenus(req MenuCreate) error {
 }
 
 /*UpdateMenu*/
-func (menu *Menu) UpdateMenu(req MenuCreate, tenantid string) error {
+func (menu *Menu) UpdateMenu(req MenuCreate) error {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
@@ -135,13 +137,15 @@ func (menu *Menu) UpdateMenu(req MenuCreate, tenantid string) error {
 
 	menudet.Status = req.Status
 
-	menudet.Slug = menudetSlug
+	menudet.SlugName = menudetSlug
 
 	menudet.ModifiedBy = req.ModifiedBy
 
 	menudet.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-	err := menumodel.UpdateMenu(&menudet, menu.DB, tenantid)
+	menudet.TenantId = req.TenantId
+
+	err := menumodel.UpdateMenu(&menudet, menu.DB)
 
 	if err != nil {
 
@@ -187,4 +191,20 @@ func (menu *Menu) DeleteMenu(menuid int, modifiedby int, tenantid string) error 
 
 	return nil
 
+}
+
+// Check Menuname is already exists
+func (menu *Menu) CheckMenuName(id int, name string, tenantid string) (bool, error) {
+
+	var menudet TblMenus
+
+	err := menumodel.CheckMenuName(menudet, id, name, menu.DB, tenantid)
+
+	if err != nil {
+
+		return false, err
+
+	}
+
+	return true, nil
 }

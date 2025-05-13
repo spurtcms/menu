@@ -9,6 +9,7 @@ import (
 type Filter struct {
 	Keyword string
 	Status  string
+	ToDate  string
 }
 
 type TblMenus struct {
@@ -19,14 +20,14 @@ type TblMenus struct {
 	CreatedOn   time.Time
 	CreatedBy   int
 	IsDeleted   int
-	DeletedOn   time.Time
-	DeletedBy   int
-	ModifiedOn  time.Time
-	ModifiedBy  int
-	DateString  string `gorm:"-"`
+	DeletedOn   time.Time `gorm:"DEFAULT:NULL"`
+	DeletedBy   int       `gorm:"DEFAULT:NULL"`
+	ModifiedOn  time.Time `gorm:"DEFAULT:NULL"`
+	ModifiedBy  int       `gorm:"DEFAULT:NULL"`
+	DateString  string    `gorm:"-"`
 	ParentId    int
 	UrlPath     string
-	Slug        string
+	SlugName    string
 	Status      int
 }
 
@@ -59,6 +60,22 @@ func (menu *MenuModel) MenuList(limit int, offset int, filter Filter, DB *gorm.D
 		query = query.Where("LOWER(TRIM(name)) like LOWER(TRIM(?))", "%"+filter.Keyword+"%")
 	}
 
+	if filter.ToDate != "" {
+		query = query.Where("tbl_menus.modified_on >= ? AND tbl_menus.modified_on < ?",
+			filter.ToDate+" 00:00:00",
+			filter.ToDate+" 23:59:59")
+	}
+	if filter.Status != "" {
+
+		if filter.Status == "Active" {
+
+			query = query.Where("tbl_menus.status=?", 1)
+		}
+		if filter.Status == "Inactive" {
+
+			query = query.Where("tbl_menus.status=?", 0)
+		}
+	}
 	if limit != 0 {
 
 		query.Limit(limit).Offset(offset).Find(&menus)
@@ -88,16 +105,16 @@ func (menu *MenuModel) CreateMenus(req *TblMenus, DB *gorm.DB) error {
 }
 
 // UpdateMenu
-func (menu *MenuModel) UpdateMenu(menureq *TblMenus, DB *gorm.DB, tenantid string) error {
+func (menu *MenuModel) UpdateMenu(menureq *TblMenus, DB *gorm.DB) error {
 
 	if menureq.ParentId == 0 {
 
-		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, tenantid).UpdateColumns(map[string]interface{}{"name": menureq.Name, "slug": menureq.Slug, "status": menureq.Status, "description": menureq.Description, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn}).Error; err != nil {
+		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "slug_name": menureq.SlugName, "status": menureq.Status, "description": menureq.Description, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn}).Error; err != nil {
 
 			return err
 		}
 	} else {
-		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, tenantid).UpdateColumns(map[string]interface{}{"name": menureq.Name, "parent_id": menureq.ParentId, "status": menureq.Status, "slug": menureq.Slug, "description": menureq.Description, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn}).Error; err != nil {
+		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "parent_id": menureq.ParentId, "status": menureq.Status, "slug_name": menureq.SlugName, "description": menureq.Description, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn}).Error; err != nil {
 
 			return err
 		}
@@ -111,7 +128,7 @@ func (menu *MenuModel) GetMenuTree(menuid int, DB *gorm.DB, tenantid string) ([]
 	err := DB.Debug().Raw(`
 		WITH RECURSIVE me_tree AS (
 			SELECT id, 	name,
-			slug,
+			slug_name,
 			parent_id,
 			created_on,
 			modified_on,
@@ -120,7 +137,7 @@ func (menu *MenuModel) GetMenuTree(menuid int, DB *gorm.DB, tenantid string) ([]
 			WHERE id = ? and  tenant_id =?
 			UNION ALL
 			SELECT me.id, me.name,
-			me.slug,
+			me.slug_name,
 			me.parent_id,
 			me.created_on,
 			me.modified_on,
@@ -145,6 +162,26 @@ func (menu *MenuModel) DeleteMenuById(menureq *TblMenus, menuid []int, tenantid 
 
 		return err
 
+	}
+
+	return nil
+}
+
+// Check Menuname is already exists
+func (menu *MenuModel) CheckMenuName(menureq TblMenus, menuid int, name string, DB *gorm.DB, tenantid string) error {
+
+	if menuid == 0 {
+
+		if err := DB.Table("tbl_menus").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and is_deleted=0 and  tenant_id = ?", name, tenantid).First(&menureq).Error; err != nil {
+
+			return err
+		}
+	} else {
+
+		if err := DB.Table("tbl_menus").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0 and  tenant_id = ?", name, menuid, tenantid).First(&menureq).Error; err != nil {
+
+			return err
+		}
 	}
 
 	return nil
