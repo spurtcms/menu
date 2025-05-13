@@ -4,7 +4,23 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/spurtcms/menu/migration"
 )
+
+func MenuSetup(config Config) *Menu {
+
+	migration.AutoMigration(config.DB, config.DataBaseType)
+
+	return &Menu{
+		DB:               config.DB,
+		AuthEnable:       config.AuthEnable,
+		PermissionEnable: config.PermissionEnable,
+		Auth:             config.Auth,
+		Permissions:      config.Permissions,
+	}
+
+}
 
 var menumodel MenuModel
 
@@ -70,9 +86,99 @@ func (menu *Menu) CreateMenus(req MenuCreate) error {
 
 	menus.TenantId = req.TenantId
 
+	menus.Status = req.Status
+
 	menus.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	err := menumodel.CreateMenus(&menus, menu.DB)
+
+	if err != nil {
+
+		return err
+	}
+
+	return nil
+
+}
+
+/*UpdateMenu*/
+func (menu *Menu) UpdateMenu(req MenuCreate, tenantid string) error {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return AuthError
+	}
+
+	if req.Id <= 0 || req.MenuName == "" {
+
+		return ErrorMenuName
+	}
+
+	var (
+		menudet     TblMenus
+		menudetSlug string
+	)
+
+	menudet.Id = req.Id
+
+	menudet.Name = req.MenuName
+
+	menudet.Description = req.Description
+
+	menudetSlug = strings.ToLower(strings.ReplaceAll(req.MenuName, " ", "-"))
+
+	menudetSlug = regexp.MustCompile(`[^a-zA-Z0-9]+`).ReplaceAllString(menudetSlug, "-")
+
+	menudetSlug = regexp.MustCompile(`-+`).ReplaceAllString(menudetSlug, "-")
+
+	menudetSlug = strings.Trim(menudetSlug, "-")
+
+	menudet.Status = req.Status
+
+	menudet.Slug = menudetSlug
+
+	menudet.ModifiedBy = req.ModifiedBy
+
+	menudet.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+	err := menumodel.UpdateMenu(&menudet, menu.DB, tenantid)
+
+	if err != nil {
+
+		return err
+	}
+
+	return nil
+
+}
+
+/*Deletemenu*/
+func (menu *Menu) DeleteMenu(menuid int, modifiedby int, tenantid string) error {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return AuthError
+	}
+	GetData, _ := menumodel.GetMenuTree(menuid, menu.DB, tenantid)
+
+	var individualid []int
+
+	for _, GetParent := range GetData {
+
+		indivi := GetParent.Id
+
+		individualid = append(individualid, indivi)
+	}
+
+	var menudet TblMenus
+
+	menudet.DeletedBy = modifiedby
+
+	menudet.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+	menudet.IsDeleted = 1
+
+	err := menumodel.DeleteMenuById(&menudet, individualid, tenantid, menu.DB)
 
 	if err != nil {
 
