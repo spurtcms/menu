@@ -208,3 +208,34 @@ func (menu *Menu) CheckMenuName(id int, name string, tenantid string) (bool, err
 
 	return true, nil
 }
+
+//MenuStatuc Update Function//
+
+func (menu *Menu) MenuStatusChange(menuid int, status int, userid int, tenantid string) (bool, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return false, AuthError
+	}
+
+	var menudet TblMenus
+
+	menudet.ModifiedBy = userid
+
+	menudet.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+	menudet.Status = status
+
+	menudet.TenantId = tenantid
+
+	menudet.Id = menuid
+
+	err := menumodel.MenuStatusChange(menudet, menu.DB)
+
+	if err != nil {
+
+		return false, err
+
+	}
+	return true, nil
+}

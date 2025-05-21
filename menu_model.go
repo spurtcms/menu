@@ -186,3 +186,13 @@ func (menu *MenuModel) CheckMenuName(menureq TblMenus, menuid int, name string, 
 
 	return nil
 }
+
+func (menu *MenuModel) MenuStatusChange(menureq TblMenus, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_menus").Where("id=? and tenant_id=?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"status": menureq.Status, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
