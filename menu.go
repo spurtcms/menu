@@ -49,16 +49,16 @@ func (menu *Menu) MenuList(limit int, offset int, filter Filter, tenantid string
 }
 
 // Create Menu
-func (menu *Menu) CreateMenus(req MenuCreate) error {
+func (menu *Menu) CreateMenus(req MenuCreate) (TblMenus, error) {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
-		return AuthError
+		return TblMenus{}, AuthError
 	}
 
 	if req.MenuName == "" {
 
-		return ErrorMenuName
+		return TblMenus{}, ErrorMenuName
 	}
 
 	var (
@@ -82,38 +82,40 @@ func (menu *Menu) CreateMenus(req MenuCreate) error {
 
 	menus.CreatedBy = req.CreatedBy
 
-	menus.ParentId = 0
+	menus.ParentId = req.ParentId
 
 	menus.TenantId = req.TenantId
 
 	menus.Status = req.Status
 
+	menus.UrlPath = req.UrlPath
+
 	menus.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	menus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-	err := menumodel.CreateMenus(&menus, menu.DB)
+	menn, err := menumodel.CreateMenus(&menus, menu.DB)
 
 	if err != nil {
 
-		return err
+		return TblMenus{}, err
 	}
 
-	return nil
+	return menn, nil
 
 }
 
 /*UpdateMenu*/
-func (menu *Menu) UpdateMenu(req MenuCreate) error {
+func (menu *Menu) UpdateMenu(req MenuCreate) (TblMenus, error) {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
-		return AuthError
+		return TblMenus{}, AuthError
 	}
 
 	if req.Id <= 0 || req.MenuName == "" {
 
-		return ErrorMenuName
+		return TblMenus{}, ErrorMenuName
 	}
 
 	var (
@@ -145,14 +147,18 @@ func (menu *Menu) UpdateMenu(req MenuCreate) error {
 
 	menudet.TenantId = req.TenantId
 
-	err := menumodel.UpdateMenu(&menudet, menu.DB)
+	menudet.ParentId = req.ParentId
+
+	menudet.UrlPath = req.UrlPath
+
+	updatemenu, err := menumodel.UpdateMenu(&menudet, menu.DB)
 
 	if err != nil {
 
-		return err
+		return TblMenus{}, err
 	}
 
-	return nil
+	return updatemenu, nil
 
 }
 
@@ -238,4 +244,55 @@ func (menu *Menu) MenuStatusChange(menuid int, status int, userid int, tenantid 
 
 	}
 	return true, nil
+}
+
+func (menu *Menu) GetMenusByParentid(parentid int, tenantid string) ([]TblMenus, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return []TblMenus{}, AuthError
+	}
+	GetData, _ := menumodel.GetMenuTree(parentid, menu.DB, tenantid)
+
+	return GetData, nil
+}
+
+func (menu *Menu) DeleteMenuItem(menuid int, userid int, tenantid string) error {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return AuthError
+	}
+	var menudet TblMenus
+
+	menudet.DeletedBy = userid
+
+	menudet.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+	menudet.IsDeleted = 1
+
+	menudet.Id = menuid
+
+	menudet.TenantId = tenantid
+
+	err := menumodel.DeleteMenuItemById(menudet, menu.DB)
+
+	if err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (menu *Menu) GetmenyById(menuid int, tenantid string) (TblMenus, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return TblMenus{}, AuthError
+	}
+
+	GetData, _ := menumodel.GetMenuById(menuid, menu.DB, tenantid)
+
+	return GetData, nil
 }
