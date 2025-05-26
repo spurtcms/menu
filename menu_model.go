@@ -29,6 +29,8 @@ type TblMenus struct {
 	UrlPath     string
 	SlugName    string
 	Status      int
+	Type        string
+	TypeId      int
 }
 
 type MenuModel struct {
@@ -47,6 +49,8 @@ type MenuCreate struct {
 	ModifiedBy  int
 	Status      int
 	UrlPath     string
+	Type        string
+	TypeId      int
 }
 
 // Menu Listing
@@ -115,7 +119,7 @@ func (menu *MenuModel) UpdateMenu(menureq *TblMenus, DB *gorm.DB) (TblMenus, err
 			return TblMenus{}, err
 		}
 	} else {
-		if err := DB.Debug().Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "url_path": menureq.UrlPath, "parent_id": menureq.ParentId, "status": menureq.Status, "slug_name": menureq.SlugName, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn}).Error; err != nil {
+		if err := DB.Debug().Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "url_path": menureq.UrlPath, "parent_id": menureq.ParentId, "status": menureq.Status, "slug_name": menureq.SlugName, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "type": menureq.Type, "type_id": menureq.TypeId}).Error; err != nil {
 
 			return TblMenus{}, err
 		}
@@ -134,6 +138,8 @@ func (menu *MenuModel) GetMenuTree(menuid int, DB *gorm.DB, tenantid string) ([]
 			created_on,
 			modified_on,
 			url_path,
+			type,
+			type_id,
 			is_deleted
 			FROM tbl_menus
 			WHERE id = ? and  tenant_id =?
@@ -144,6 +150,8 @@ func (menu *MenuModel) GetMenuTree(menuid int, DB *gorm.DB, tenantid string) ([]
 			me.created_on,
 			me.modified_on,
 			me.url_path,
+			me.type,
+			me.type_id,
 			me.is_deleted
 			FROM tbl_menus AS me
 			JOIN me_tree ON me.parent_id = me_tree.id and  me.tenant_id =?
