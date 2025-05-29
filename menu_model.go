@@ -13,24 +13,25 @@ type Filter struct {
 }
 
 type TblMenus struct {
-	Id          int
-	Name        string
-	Description string
-	TenantId    string
-	CreatedOn   time.Time
-	CreatedBy   int
-	IsDeleted   int
-	DeletedOn   time.Time `gorm:"DEFAULT:NULL"`
-	DeletedBy   int       `gorm:"DEFAULT:NULL"`
-	ModifiedOn  time.Time `gorm:"DEFAULT:NULL"`
-	ModifiedBy  int       `gorm:"DEFAULT:NULL"`
-	DateString  string    `gorm:"-"`
-	ParentId    int
-	UrlPath     string
-	SlugName    string
-	Status      int
-	Type        string
-	TypeId      int
+	Id            int
+	Name          string
+	Description   string
+	TenantId      string
+	CreatedOn     time.Time
+	CreatedBy     int
+	IsDeleted     int
+	DeletedOn     time.Time `gorm:"DEFAULT:NULL"`
+	DeletedBy     int       `gorm:"DEFAULT:NULL"`
+	ModifiedOn    time.Time `gorm:"DEFAULT:NULL"`
+	ModifiedBy    int       `gorm:"DEFAULT:NULL"`
+	DateString    string    `gorm:"-"`
+	ParentId      int
+	UrlPath       string
+	SlugName      string
+	Status        int
+	Type          string
+	TypeId        int
+	MenuitemCount int `gorm:"-"`
 }
 
 type MenuModel struct {

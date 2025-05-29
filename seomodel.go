@@ -74,6 +74,13 @@ func (menu *MenuModel) SeoUpdates(seodetails TblGoTemplateSeo, DB *gorm.DB) (err
 				return err
 			}
 
+		} else if seodetails.SiteMapName != "" {
+
+			if err := DB.Table("tbl_go_template_seos").Where("tenant_id = ?", seodetails.TenantId).UpdateColumns(map[string]interface{}{"site_map_name": seodetails.SiteMapName, "site_map_path": seodetails.SiteMapPath}).Error; err != nil {
+
+				return err
+			}
+
 		}
 
 		return nil
