@@ -11,7 +11,7 @@ type TblGoTemplates struct {
 	TemplateName  string
 	TemplateImage string
 	IsDeleted     int
-	TenantId      int
+	TenantId      string
 }
 
 func (menu *MenuModel) ListGoTemplates(isdeleted int, DB *gorm.DB) (list []TblGoTemplates, count int64, err error) {

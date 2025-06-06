@@ -86,6 +86,11 @@ func (menu *MenuModel) SettingsUpdates(settingsdetails TblGoTemplateSettings, DB
 				return err
 			}
 
+			if err := DB.Table("tbl_users").Where("tenant_id = ?", settingsdetails.TenantId).UpdateColumns(map[string]interface{}{"subdomain": settingsdetails.WebsiteUrl}).Error; err != nil {
+
+				return err
+			}
+
 		}
 
 		return nil
