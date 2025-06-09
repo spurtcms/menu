@@ -20,3 +20,19 @@ func (menu *Menu) GoTemplatesList(isdeleted int) (goTemplateList []TblGoTemplate
 
 	return list, count, nil
 }
+
+func (menu *Menu) GetTemplateById(id int,tenantid string) (TblGoTemplates, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return TblGoTemplates{}, AuthError
+	}
+	template, err := menumodel.GetTemplateById(id,tenantid ,menu.DB)
+
+	if err != nil {
+
+		return TblGoTemplates{}, err
+
+	}
+	return template, nil
+}
