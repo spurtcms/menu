@@ -32,6 +32,7 @@ type TblMenus struct {
 	Type          string
 	TypeId        int
 	MenuitemCount int `gorm:"-"`
+	Count         int `gorm:"-"`
 }
 
 type MenuModel struct {
@@ -120,7 +121,7 @@ func (menu *MenuModel) UpdateMenu(menureq *TblMenus, DB *gorm.DB) (TblMenus, err
 			return TblMenus{}, err
 		}
 	} else {
-		if err := DB.Debug().Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "url_path": menureq.UrlPath, "parent_id": menureq.ParentId, "status": menureq.Status, "slug_name": menureq.SlugName, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "type": menureq.Type, "type_id": menureq.TypeId}).Error; err != nil {
+		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "url_path": menureq.UrlPath, "parent_id": menureq.ParentId, "status": menureq.Status, "slug_name": menureq.SlugName, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "type": menureq.Type, "type_id": menureq.TypeId}).Error; err != nil {
 
 			return TblMenus{}, err
 		}
@@ -131,7 +132,7 @@ func (menu *MenuModel) UpdateMenu(menureq *TblMenus, DB *gorm.DB) (TblMenus, err
 
 func (menu *MenuModel) GetMenuTree(menuid int, DB *gorm.DB, tenantid string) ([]TblMenus, error) {
 	var menus []TblMenus
-	err := DB.Debug().Raw(`
+	err := DB.Raw(`
 		WITH RECURSIVE me_tree AS (
 			SELECT id, 	name,
 			slug_name,

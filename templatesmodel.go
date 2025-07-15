@@ -30,7 +30,7 @@ func (menu *MenuModel) ListGoTemplates(isdeleted int, DB *gorm.DB) (list []TblGo
 
 func (menu *MenuModel) GetTemplateById(moduleid int, tenantid string, DB *gorm.DB) (templates TblGoTemplates, err error) {
 
-	if err := DB.Debug().Table("tbl_go_templates").Where("is_deleted = 0 and id=? ", moduleid).Order("id asc").Find(&templates).Error; err != nil {
+	if err := DB.Table("tbl_go_templates").Where("is_deleted = 0 and id=? ", moduleid).Order("id asc").Find(&templates).Error; err != nil {
 
 		return TblGoTemplates{}, err
 	}
