@@ -1,5 +1,15 @@
 # Menu Package
 
+The Menu module in SpurtCMS manages site navigation structures like headers, footers, and sidebars. It allows creation of hierarchical menus with nested items and custom ordering. 
+
+## Features
+
+- Dynamic Menu Creation – Create and manage multiple menus (e.g., header, footer, sidebar) with nested structures. 
+- Nested Menu Items – Support for parent-child hierarchy to build multi-level navigation.
+- Drag-and-Drop Ordering – Reorder menu items easily via UI or APIs for precise control.
+- Multilingual Support – Localize menu labels for different languages and regions.
+- Status Toggle – Enable or disable menu items without deleting them.
+
 # Installation
 
 ``` bash
