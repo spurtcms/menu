@@ -20,24 +20,22 @@ type TblGoTemplates struct {
 }
 
 func (menu *MenuModel) ListGoTemplates(tenantid string, DB *gorm.DB) (list []TblGoTemplates, count int64, err error) {
-
 	var GoTemplatesList []TblGoTemplates
+	query := DB.Table("tbl_go_templates").Where("is_deleted = 0")
 
 	if tenantid != "" {
-
-		if err := DB.Table("tbl_go_templates").Where("is_deleted=0 and tenant_id=?", tenantid).Find(&GoTemplatesList).Count(&count).Error; err != nil {
-
-			return []TblGoTemplates{}, 0, err
-		}
-
+		query = query.Where("tenant_id = ?", tenantid)
 	} else {
-
-		if err := DB.Table("tbl_go_templates").Where("is_deleted=0 and tenant_id is null").Find(&GoTemplatesList).Count(&count).Error; err != nil {
-
-			return []TblGoTemplates{}, 0, err
-		}
+		query = query.Where("tenant_id IS NULL")
 	}
-	fmt.Println("Hello")
+
+	if err = query.Count(&count).Error; err != nil {
+		return []TblGoTemplates{}, 0, err
+	}
+
+	if err = query.Order("id ASC").Find(&GoTemplatesList).Error; err != nil {
+		return []TblGoTemplates{}, 0, err
+	}
 
 	return GoTemplatesList, count, nil
 }
