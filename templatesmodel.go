@@ -17,7 +17,7 @@ type TblGoTemplates struct {
 	ChannelSlugName    string
 	TemplateModuleName string
 	CreatedOn          time.Time
-	DateString         string
+	DateString         string `gorm:"-:migration;<-:false"`
 }
 
 func (menu *MenuModel) ListGoTemplates(tenantid string, DB *gorm.DB) (list []TblGoTemplates, count int64, err error) {
