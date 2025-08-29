@@ -304,3 +304,15 @@ func (menu *Menu) GetmenyById(menuid int, tenantid string) (TblMenus, error) {
 
 	return GetData, nil
 }
+
+func (menu *Menu) GetMenuBySlug(slug, tenantid string) (TblMenus, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return TblMenus{}, AuthError
+	}
+
+	GetData, _ := menumodel.GetMenuBySlug(slug, menu.DB, tenantid)
+
+	return GetData, nil
+}

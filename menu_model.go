@@ -232,3 +232,15 @@ func (menu *MenuModel) GetMenuById(menuid int, DB *gorm.DB, tenantid string) (Tb
 
 	return menudet, nil
 }
+
+func (menu *MenuModel) GetMenuBySlug(menuslug string, DB *gorm.DB, tenantid string) (TblMenus, error) {
+
+	var menudet TblMenus
+
+	if err := DB.Table("tbl_menus").Where("slug_name=? and tenant_id=? and is_deleted=0", menuslug, tenantid).First(&menudet).Error; err != nil {
+
+		return TblMenus{}, err
+	}
+
+	return menudet, nil
+}
