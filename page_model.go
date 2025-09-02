@@ -126,3 +126,15 @@ func (menu *MenuModel) DeletePageById(page *TblTemplatePages, tenantid string, D
 
 	return nil
 }
+
+// Get PageBySlug
+func (menu *MenuModel) GetPageBySlug(DB *gorm.DB, pageslug string, tenantid string) (page TblTemplatePages, err error) {
+
+	if err := DB.Table("tbl_template_pages").Where("is_deleted = 0 and slug=? and tenant_id=?", pageslug, tenantid).Order("id asc").Find(&page).Error; err != nil {
+
+		return TblTemplatePages{}, err
+	}
+
+	return page, nil
+
+}

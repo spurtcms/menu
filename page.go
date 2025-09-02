@@ -146,3 +146,20 @@ func (menu *Menu) PageStatusChange(pageid int, status int, userid int, tenantid 
 	}
 	return true, nil
 }
+//GetpagebySlug
+func (menu *Menu) GetPageBySlug(slug string, tenantid string) (TblTemplatePages, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return TblTemplatePages{}, AuthError
+	}
+	pagedetail, err := menumodel.GetPageBySlug(menu.DB, slug, tenantid)
+
+	if err != nil {
+
+		return TblTemplatePages{}, err
+
+	}
+	return pagedetail, nil
+
+}
