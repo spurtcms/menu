@@ -8,16 +8,17 @@ import (
 )
 
 type TblGoTemplates struct {
-	Id                 int
-	TemplateName       string
-	TemplateImage      string
-	IsDeleted          int
-	TenantId           string
-	CreatedBy          int
-	ChannelSlugName    string
-	TemplateModuleName string
-	CreatedOn          time.Time
-	DateString         string `gorm:"-:migration;<-:false"`
+	Id                  int
+	TemplateName        string
+	TemplateDescription string
+	TemplateImage       string
+	IsDeleted           int
+	TenantId            string
+	CreatedBy           int
+	ChannelSlugName     string
+	TemplateModuleName  string
+	CreatedOn           time.Time
+	DateString          string `gorm:"-:migration;<-:false"`
 }
 
 func (menu *MenuModel) ListGoTemplates(tenantid string, DB *gorm.DB) (list []TblGoTemplates, count int64, err error) {
@@ -112,4 +113,26 @@ func (menu *MenuModel) CloneTemplatesBySlug(db *gorm.DB, slug string, tenantID s
 	}
 
 	return nil
+}
+
+// createwebsite
+func (menu *MenuModel) CreateTemplate(template *TblGoTemplates, DB *gorm.DB) (TblGoTemplates, error) {
+	var existingTemplate TblGoTemplates
+
+	err := DB.Table("tbl_go_templates").
+		Where("template_name = ? AND tenant_id = ?", template.TemplateName, template.TenantId).
+		First(&existingTemplate).Error
+
+	if err == nil {
+
+		return existingTemplate, nil
+	} else if err != gorm.ErrRecordNotFound {
+
+		return TblGoTemplates{}, err
+	}
+
+	if err := DB.Table("tbl_go_templates").Create(&template).Error; err != nil {
+		return TblGoTemplates{}, err
+	}
+	return *template, nil
 }

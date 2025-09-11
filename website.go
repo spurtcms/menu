@@ -85,3 +85,19 @@ func (menu *Menu) GetWebsiteById(id int, tenantid string) (TblWebsite, error) {
 	}
 	return website, nil
 }
+
+func (menu *Menu) GetWebsiteByName(name string) (TblWebsite, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return TblWebsite{}, AuthError
+	}
+	website, err := menumodel.GetWebsiteByName(name, menu.DB)
+
+	if err != nil {
+
+		return TblWebsite{}, err
+
+	}
+	return website, nil
+}

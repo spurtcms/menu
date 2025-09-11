@@ -96,3 +96,13 @@ func (menu *MenuModel) GetWebsiteById(webid int, tenantid string, DB *gorm.DB) (
 
 	return website, nil
 }
+
+func (menu *MenuModel) GetWebsiteByName(name string, DB *gorm.DB) (website TblWebsite, err error) {
+
+	if err := DB.Table("tbl_websites").Where("is_deleted = 0 and  name=? ", name).Order("name asc").Find(&website).Error; err != nil {
+
+		return TblWebsite{}, err
+	}
+
+	return website, nil
+}

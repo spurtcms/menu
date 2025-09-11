@@ -1,6 +1,9 @@
 package menu
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 func (menu *Menu) GoTemplatesList(tenantid string) (goTemplateList []TblGoTemplates, count int64, err error) {
 
@@ -37,13 +40,13 @@ func (menu *Menu) GetTemplateById(id int, tenantid string) (TblGoTemplates, erro
 	return template, nil
 }
 
-func (menu *Menu) CloneTemplatesBySlug(slug string, tenantid string, userid int,usertype string) error {
+func (menu *Menu) CloneTemplatesBySlug(slug string, tenantid string, userid int, usertype string) error {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
 		return AuthError
 	}
-	err := menumodel.CloneTemplatesBySlug(menu.DB, slug, tenantid, userid,usertype)
+	err := menumodel.CloneTemplatesBySlug(menu.DB, slug, tenantid, userid, usertype)
 
 	if err != nil {
 
@@ -51,4 +54,25 @@ func (menu *Menu) CloneTemplatesBySlug(slug string, tenantid string, userid int,
 
 	}
 	return nil
+}
+
+//create template//
+
+func (menu *Menu) CreateTemplate(template TblGoTemplates) (TblGoTemplates, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return TblGoTemplates{}, AuthError
+	}
+
+	template.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+	newtemp, err := menumodel.CreateTemplate(&template, menu.DB)
+
+	if err != nil {
+
+		return TblGoTemplates{}, err
+	}
+
+	return newtemp, nil
 }
