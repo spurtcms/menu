@@ -101,3 +101,20 @@ func (menu *Menu) GetWebsiteByName(name string) (TblWebsite, error) {
 	}
 	return website, nil
 }
+
+func (menu *Menu) CheckSiteName(sitename string) error {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return AuthError
+	}
+	err := menumodel.CheckSiteName(sitename,  menu.DB)
+
+	if err != nil {
+
+		return err
+
+	}
+
+	return nil
+}
