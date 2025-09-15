@@ -106,13 +106,21 @@ func (menu *MenuModel) GetWebsiteByName(name string, DB *gorm.DB) (website TblWe
 
 	return website, nil
 }
-func (menu *MenuModel) CheckSiteName(name string, DB *gorm.DB) error {
+func (menu *MenuModel) CheckSiteName(name string,webid int, DB *gorm.DB) error {
 
 	var website TblWebsite
 
-	if err := DB.Table("tbl_websites").Where("name = ? AND  is_deleted = 0 ", name).First(&website).Error; err != nil {
+	if webid == 0 {
+		if err := DB.Table("tbl_websites").Where("name = ? AND  is_deleted = 0 ", name).First(&website).Error; err != nil {
 
-		return err
+			return err
+		}
+	} else {
+
+		if err := DB.Table("tbl_websites").Where("name = ? AND id not is(?) and  is_deleted = 0 ", name, webid).First(&website).Error; err != nil {
+
+			return err
+		}
 	}
 
 	return nil
