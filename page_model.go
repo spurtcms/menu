@@ -22,6 +22,10 @@ type TblTemplatePages struct {
 	CreatedDate     string    `gorm:"-:migration;<-:false"`
 	ModifiedDate    string    `gorm:"-:migration;<-:false"`
 	Status          int       `gorm:"type:integer"`
+	MetaTitle       string    `gorm:"type:character varying"`
+	MetaDescription string    `gorm:"type:character varying"`
+	MetaKeywords    string    `gorm:"type:character varying"`
+	MetaSlug        string    `gorm:"type:character varying"`
 }
 
 // Create Page
