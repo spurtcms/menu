@@ -33,6 +33,7 @@ type TblMenus struct {
 	TypeId        int
 	MenuitemCount int `gorm:"-"`
 	Count         int `gorm:"-"`
+	WebsiteId     int
 }
 
 type MenuModel struct {
@@ -53,14 +54,15 @@ type MenuCreate struct {
 	UrlPath     string
 	Type        string
 	TypeId      int
+	WebsiteId   int
 }
 
 // Menu Listing
-func (menu *MenuModel) MenuList(limit int, offset int, filter Filter, DB *gorm.DB, tenantid string) (menus []TblMenus, count int64, err error) {
+func (menu *MenuModel) MenuList(limit int, offset int, filter Filter, DB *gorm.DB, tenantid string, websiteid int) (menus []TblMenus, count int64, err error) {
 
 	var menucount int64
 
-	query := DB.Table("tbl_menus").Where("is_deleted = 0 and parent_id=0 and  tenant_id = ?", tenantid).Order("tbl_menus.created_on desc")
+	query := DB.Table("tbl_menus").Where("is_deleted = 0 and parent_id=0 and website_id=? and tenant_id = ?", websiteid, tenantid).Order("tbl_menus.created_on desc")
 
 	if filter.Keyword != "" {
 
@@ -116,12 +118,12 @@ func (menu *MenuModel) UpdateMenu(menureq *TblMenus, DB *gorm.DB) (TblMenus, err
 
 	if menureq.ParentId == 0 {
 
-		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "slug_name": menureq.SlugName, "status": menureq.Status, "description": menureq.Description, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn}).Error; err != nil {
+		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "slug_name": menureq.SlugName, "status": menureq.Status, "description": menureq.Description, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "website_id": menureq.WebsiteId}).Error; err != nil {
 
 			return TblMenus{}, err
 		}
 	} else {
-		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "url_path": menureq.UrlPath, "parent_id": menureq.ParentId, "status": menureq.Status, "slug_name": menureq.SlugName, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "type": menureq.Type, "type_id": menureq.TypeId}).Error; err != nil {
+		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "url_path": menureq.UrlPath, "parent_id": menureq.ParentId, "status": menureq.Status, "slug_name": menureq.SlugName, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "type": menureq.Type, "type_id": menureq.TypeId, "website_id": menureq.WebsiteId}).Error; err != nil {
 
 			return TblMenus{}, err
 		}

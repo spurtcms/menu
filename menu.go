@@ -25,7 +25,7 @@ func MenuSetup(config Config) *Menu {
 var menumodel MenuModel
 
 // MenuListing
-func (menu *Menu) MenuList(limit int, offset int, filter Filter, tenantid string) (Menulist []TblMenus, count int64, err error) {
+func (menu *Menu) MenuList(limit int, offset int, filter Filter, tenantid string, websiteid int) (Menulist []TblMenus, count int64, err error) {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
@@ -35,9 +35,9 @@ func (menu *Menu) MenuList(limit int, offset int, filter Filter, tenantid string
 	menumodel.DataAccess = menu.DataAccess
 	menumodel.Userid = menu.UserId
 
-	_, totalcount, _ := menumodel.MenuList(0, 0, filter, menu.DB, tenantid)
+	_, totalcount, _ := menumodel.MenuList(0, 0, filter, menu.DB, tenantid,websiteid)
 
-	menuparentlist, _, cerr := menumodel.MenuList(limit, offset, filter, menu.DB, tenantid)
+	menuparentlist, _, cerr := menumodel.MenuList(limit, offset, filter, menu.DB, tenantid,websiteid)
 
 	if cerr != nil {
 
@@ -93,6 +93,8 @@ func (menu *Menu) CreateMenus(req MenuCreate) (TblMenus, error) {
 	menus.Type = req.Type
 
 	menus.TypeId = req.TypeId
+
+	menus.WebsiteId =req.WebsiteId
 
 	menus.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
@@ -158,6 +160,8 @@ func (menu *Menu) UpdateMenu(req MenuCreate) (TblMenus, error) {
 	menudet.Type = req.Type
 
 	menudet.TypeId = req.TypeId
+
+	menudet.WebsiteId =req.WebsiteId
 
 	updatemenu, err := menumodel.UpdateMenu(&menudet, menu.DB)
 
