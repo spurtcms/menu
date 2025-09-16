@@ -27,13 +27,13 @@ type TblWebsite struct {
 }
 
 // createwebsite
-func (menu *MenuModel) CreateWebsite(website *TblWebsite, DB *gorm.DB) error {
+func (menu *MenuModel) CreateWebsite(website *TblWebsite, DB *gorm.DB) (TblWebsite, error) {
 
 	if err := DB.Table("tbl_websites").Create(&website).Error; err != nil {
 
-		return err
+		return TblWebsite{}, err
 	}
-	return nil
+	return *website, nil
 }
 
 // websitelist
@@ -106,7 +106,7 @@ func (menu *MenuModel) GetWebsiteByName(name string, DB *gorm.DB) (website TblWe
 
 	return website, nil
 }
-func (menu *MenuModel) CheckSiteName(name string,webid int, DB *gorm.DB) error {
+func (menu *MenuModel) CheckSiteName(name string, webid int, DB *gorm.DB) error {
 
 	var website TblWebsite
 

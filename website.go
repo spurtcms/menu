@@ -2,23 +2,23 @@ package menu
 
 import "time"
 
-func (menu *Menu) CreateWebsite(websiteinfo TblWebsite) error {
+func (menu *Menu) CreateWebsite(websiteinfo TblWebsite) ( TblWebsite,error ){
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
-		return AuthError
+		return TblWebsite{}, AuthError
 	}
 
 	websiteinfo.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-	err := menumodel.CreateWebsite(&websiteinfo, menu.DB)
+	website,err := menumodel.CreateWebsite(&websiteinfo, menu.DB)
 
 	if err != nil {
 
-		return err
+		return TblWebsite{},err
 	}
 
-	return nil
+	return website, nil
 }
 
 func (menu *Menu) WebsiteList(limit int, offset int, filter Filter, tenantid string) (websitelist []TblWebsite, count int64, err error) {
