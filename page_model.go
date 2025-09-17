@@ -26,6 +26,7 @@ type TblTemplatePages struct {
 	MetaDescription string    `gorm:"type:character varying"`
 	MetaKeywords    string    `gorm:"type:character varying"`
 	MetaSlug        string    `gorm:"type:character varying"`
+	WebsiteId       int       `gorm:"type:integer"`
 }
 
 // Create Page
@@ -40,11 +41,11 @@ func (menu *MenuModel) CreateTemplatePage(db *gorm.DB, page *TblTemplatePages) (
 }
 
 // PageList
-func (menu *MenuModel) TemplatePageList(limit int, offset int, filter Filter, DB *gorm.DB, Tenantid string) (pages []TblTemplatePages, count int64, err error) {
+func (menu *MenuModel) TemplatePageList(limit int, offset int, filter Filter, DB *gorm.DB, Tenantid string, websiteid int) (pages []TblTemplatePages, count int64, err error) {
 
 	var pagecount int64
 
-	query := DB.Table("tbl_template_pages").Where("is_deleted = 0 and  tenant_id = ?", Tenantid).Order("tbl_template_pages.created_on desc")
+	query := DB.Table("tbl_template_pages").Where("is_deleted = 0 and website_id=? and tenant_id = ?", websiteid, Tenantid).Order("tbl_template_pages.created_on desc")
 
 	if filter.Keyword != "" {
 

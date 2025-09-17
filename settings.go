@@ -4,14 +4,14 @@ import (
 	"fmt"
 )
 
-func (menu *Menu) SettingsDetail(tenantid string) (setting TblGoTemplateSettings, err error) {
+func (menu *Menu) SettingsDetail(tenantid string, websiteid int) (setting TblGoTemplateSettings, err error) {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
 		return TblGoTemplateSettings{}, AuthError
 	}
 
-	settingsdetail, err := menumodel.SettingDetail(tenantid, menu.DB)
+	settingsdetail, err := menumodel.SettingDetail(tenantid, websiteid, menu.DB)
 
 	if err != nil {
 
@@ -37,6 +37,7 @@ func (menu *Menu) SettingUpdate(settingsdetails TblGoTemplateSettings) error {
 		SiteFavIconPath: settingsdetails.SiteFavIconPath,
 		WebsiteUrl:      settingsdetails.WebsiteUrl,
 		TenantId:        settingsdetails.TenantId,
+		WebsiteId: settingsdetails.WebsiteId,
 	}
 
 	fmt.Println("hello::", Settings)

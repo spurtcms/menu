@@ -4,14 +4,14 @@ import (
 	"fmt"
 )
 
-func (menu *Menu) SeoDetail(tenantid string) (seo TblGoTemplateSeo, err error) {
+func (menu *Menu) SeoDetail(tenantid string, websiteid int) (seo TblGoTemplateSeo, err error) {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
 		return TblGoTemplateSeo{}, AuthError
 	}
 
-	seodetail, err := menumodel.SeoDetails(tenantid, menu.DB)
+	seodetail, err := menumodel.SeoDetails(tenantid,websiteid, menu.DB)
 
 	if err != nil {
 
@@ -40,6 +40,7 @@ func (menu *Menu) SeoUpdate(seodetails TblGoTemplateSeo) error {
 		SiteMapName:      seodetails.SiteMapName,
 		SiteMapPath:      seodetails.SiteMapPath,
 		TenantId:         seodetails.TenantId,
+		WebsiteId: seodetails.WebsiteId,
 	}
 
 	fmt.Println("hello::", SEO)

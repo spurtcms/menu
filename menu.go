@@ -35,9 +35,9 @@ func (menu *Menu) MenuList(limit int, offset int, filter Filter, tenantid string
 	menumodel.DataAccess = menu.DataAccess
 	menumodel.Userid = menu.UserId
 
-	_, totalcount, _ := menumodel.MenuList(0, 0, filter, menu.DB, tenantid,websiteid)
+	_, totalcount, _ := menumodel.MenuList(0, 0, filter, menu.DB, tenantid, websiteid)
 
-	menuparentlist, _, cerr := menumodel.MenuList(limit, offset, filter, menu.DB, tenantid,websiteid)
+	menuparentlist, _, cerr := menumodel.MenuList(limit, offset, filter, menu.DB, tenantid, websiteid)
 
 	if cerr != nil {
 
@@ -94,7 +94,7 @@ func (menu *Menu) CreateMenus(req MenuCreate) (TblMenus, error) {
 
 	menus.TypeId = req.TypeId
 
-	menus.WebsiteId =req.WebsiteId
+	menus.WebsiteId = req.WebsiteId
 
 	menus.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
@@ -161,7 +161,7 @@ func (menu *Menu) UpdateMenu(req MenuCreate) (TblMenus, error) {
 
 	menudet.TypeId = req.TypeId
 
-	menudet.WebsiteId =req.WebsiteId
+	menudet.WebsiteId = req.WebsiteId
 
 	updatemenu, err := menumodel.UpdateMenu(&menudet, menu.DB)
 
@@ -212,11 +212,11 @@ func (menu *Menu) DeleteMenu(menuid int, modifiedby int, tenantid string) error 
 }
 
 // Check Menuname is already exists
-func (menu *Menu) CheckMenuName(id int, name string, tenantid string) (bool, error) {
+func (menu *Menu) CheckMenuName(id int, name string, websiteid int, tenantid string) (bool, error) {
 
 	var menudet TblMenus
 
-	err := menumodel.CheckMenuName(menudet, id, name, menu.DB, tenantid)
+	err := menumodel.CheckMenuName(menudet, id, name,websiteid, menu.DB, tenantid)
 
 	if err != nil {
 

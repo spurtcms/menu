@@ -16,13 +16,14 @@ type TblGoTemplateSettings struct {
 	SiteFavIconPath string
 	WebsiteUrl      string
 	TenantId        string
+	WebsiteId       int
 }
 
-func (menu *MenuModel) SettingDetail(tenantid string, DB *gorm.DB) (setting TblGoTemplateSettings, err error) {
+func (menu *MenuModel) SettingDetail(tenantid string, websiteid int, DB *gorm.DB) (setting TblGoTemplateSettings, err error) {
 
 	var SettingsDetail TblGoTemplateSettings
 
-	if err := DB.Table("tbl_go_template_settings").Where("tenant_id = ?", tenantid).First(&SettingsDetail).Error; err != nil {
+	if err := DB.Table("tbl_go_template_settings").Where("tenant_id = ? and website_id=?", tenantid, websiteid).First(&SettingsDetail).Error; err != nil {
 
 		return TblGoTemplateSettings{}, err
 	}
@@ -36,7 +37,7 @@ func (menu *MenuModel) SettingsUpdates(settingsdetails TblGoTemplateSettings, DB
 
 	fmt.Println("hello")
 
-	result := DB.Table("tbl_go_template_settings").Where("tenant_id = ?", settingsdetails.TenantId).First(&settinglist)
+	result := DB.Table("tbl_go_template_settings").Where("tenant_id = ? and website_id=?", settingsdetails.TenantId, settingsdetails.WebsiteId).First(&settinglist)
 
 	if result.Error != nil {
 
@@ -47,9 +48,10 @@ func (menu *MenuModel) SettingsUpdates(settingsdetails TblGoTemplateSettings, DB
 				return err
 			}
 
+			fmt.Println("chechthiscondition")
 			if settingsdetails.WebsiteUrl != "" {
 
-				if err := DB.Table("tbl_users").Where("tenant_id = ?", settingsdetails.TenantId).UpdateColumns(map[string]interface{}{"subdomain": settingsdetails.WebsiteUrl}).Error; err != nil {
+				if err := DB.Debug().Table("tbl_websites").Where("tenant_id = ? and id=?", settingsdetails.TenantId, settingsdetails.WebsiteId).UpdateColumns(map[string]interface{}{"name": settingsdetails.WebsiteUrl}).Error; err != nil {
 
 					return err
 				}
@@ -68,7 +70,7 @@ func (menu *MenuModel) SettingsUpdates(settingsdetails TblGoTemplateSettings, DB
 
 		if settingsdetails.SiteName != "" {
 
-			if err := DB.Table("tbl_go_template_settings").Where("tenant_id = ?", settingsdetails.TenantId).UpdateColumns(map[string]interface{}{"site_name": settingsdetails.SiteName}).Error; err != nil {
+			if err := DB.Table("tbl_go_template_settings").Where("tenant_id = ? and website_id=?", settingsdetails.TenantId, settingsdetails.WebsiteId).UpdateColumns(map[string]interface{}{"site_name": settingsdetails.SiteName}).Error; err != nil {
 
 				return err
 
@@ -76,26 +78,26 @@ func (menu *MenuModel) SettingsUpdates(settingsdetails TblGoTemplateSettings, DB
 
 		} else if settingsdetails.SiteLogo != "" {
 
-			if err := DB.Table("tbl_go_template_settings").Where("tenant_id = ?", settingsdetails.TenantId).UpdateColumns(map[string]interface{}{"site_logo": settingsdetails.SiteLogo, "site_logo_path": settingsdetails.SiteLogoPath}).Error; err != nil {
+			if err := DB.Table("tbl_go_template_settings").Where("tenant_id = ? and website_id=?", settingsdetails.TenantId, settingsdetails.WebsiteId).UpdateColumns(map[string]interface{}{"site_logo": settingsdetails.SiteLogo, "site_logo_path": settingsdetails.SiteLogoPath}).Error; err != nil {
 
 				return err
 			}
 
 		} else if settingsdetails.SiteFavIcon != "" {
 
-			if err := DB.Table("tbl_go_template_settings").Where("tenant_id = ?", settingsdetails.TenantId).UpdateColumns(map[string]interface{}{"site_fav_icon": settingsdetails.SiteFavIcon, "site_fav_icon_path": settingsdetails.SiteFavIconPath}).Error; err != nil {
+			if err := DB.Table("tbl_go_template_settings").Where("tenant_id = ? and website_id=?", settingsdetails.TenantId, settingsdetails.WebsiteId).UpdateColumns(map[string]interface{}{"site_fav_icon": settingsdetails.SiteFavIcon, "site_fav_icon_path": settingsdetails.SiteFavIconPath}).Error; err != nil {
 
 				return err
 			}
 
 		} else if settingsdetails.WebsiteUrl != "" {
 
-			if err := DB.Table("tbl_go_template_settings").Where("tenant_id = ?", settingsdetails.TenantId).UpdateColumns(map[string]interface{}{"website_url": settingsdetails.WebsiteUrl}).Error; err != nil {
+			if err := DB.Table("tbl_go_template_settings").Where("tenant_id = ? and website_id=?", settingsdetails.TenantId, settingsdetails.WebsiteId).UpdateColumns(map[string]interface{}{"website_url": settingsdetails.WebsiteUrl}).Error; err != nil {
 
 				return err
 			}
 
-			if err := DB.Table("tbl_users").Where("tenant_id = ?", settingsdetails.TenantId).UpdateColumns(map[string]interface{}{"subdomain": settingsdetails.WebsiteUrl}).Error; err != nil {
+			if err := DB.Table("tbl_websites").Where("tenant_id = ? and id=?", settingsdetails.TenantId, settingsdetails.WebsiteId).UpdateColumns(map[string]interface{}{"name": settingsdetails.WebsiteUrl}).Error; err != nil {
 
 				return err
 			}

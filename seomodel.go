@@ -18,13 +18,14 @@ type TblGoTemplateSeo struct {
 	SiteMapName      string
 	SiteMapPath      string
 	TenantId         string
+	WebsiteId        int
 }
 
-func (menu *MenuModel) SeoDetails(tenantid string, DB *gorm.DB) (seo TblGoTemplateSeo, err error) {
+func (menu *MenuModel) SeoDetails(tenantid string, websiteid int, DB *gorm.DB) (seo TblGoTemplateSeo, err error) {
 
 	var SeoDetail TblGoTemplateSeo
 
-	if err := DB.Table("tbl_go_template_seos").Where("tenant_id = ?", tenantid).First(&SeoDetail).Error; err != nil {
+	if err := DB.Table("tbl_go_template_seos").Where("tenant_id = ? and website_id=?", tenantid, websiteid).First(&SeoDetail).Error; err != nil {
 
 		return TblGoTemplateSeo{}, err
 	}
@@ -38,7 +39,7 @@ func (menu *MenuModel) SeoUpdates(seodetails TblGoTemplateSeo, DB *gorm.DB) (err
 
 	var seolist TblGoTemplateSeo
 
-	result := DB.Table("tbl_go_template_seos").Where("tenant_id = ?", seodetails.TenantId).First(&seolist)
+	result := DB.Table("tbl_go_template_seos").Where("tenant_id = ? and website_id=?", seodetails.TenantId, seodetails.WebsiteId).First(&seolist)
 
 	if result.Error != nil {
 
@@ -61,7 +62,7 @@ func (menu *MenuModel) SeoUpdates(seodetails TblGoTemplateSeo, DB *gorm.DB) (err
 
 		if seodetails.PageTitle != "" {
 
-			if err := DB.Table("tbl_go_template_seos").Where("tenant_id = ?", seodetails.TenantId).UpdateColumns(map[string]interface{}{"page_title": seodetails.PageTitle, "page_description": seodetails.PageDescription, "page_keyword": seodetails.PageKeyword}).Error; err != nil {
+			if err := DB.Table("tbl_go_template_seos").Where("tenant_id = ? and website_id=?", seodetails.TenantId, seodetails.WebsiteId).UpdateColumns(map[string]interface{}{"page_title": seodetails.PageTitle, "page_description": seodetails.PageDescription, "page_keyword": seodetails.PageKeyword}).Error; err != nil {
 
 				return err
 
@@ -69,14 +70,14 @@ func (menu *MenuModel) SeoUpdates(seodetails TblGoTemplateSeo, DB *gorm.DB) (err
 
 		} else if seodetails.StoreTitle != "" {
 
-			if err := DB.Table("tbl_go_template_seos").Where("tenant_id = ?", seodetails.TenantId).UpdateColumns(map[string]interface{}{"store_title": seodetails.StoreTitle, "store_description": seodetails.StoreDescription, "store_keyword": seodetails.StoreKeyword}).Error; err != nil {
+			if err := DB.Table("tbl_go_template_seos").Where("tenant_id = ? and website_id=?", seodetails.TenantId, seodetails.WebsiteId).UpdateColumns(map[string]interface{}{"store_title": seodetails.StoreTitle, "store_description": seodetails.StoreDescription, "store_keyword": seodetails.StoreKeyword}).Error; err != nil {
 
 				return err
 			}
 
 		} else if seodetails.SiteMapName != "" {
 
-			if err := DB.Table("tbl_go_template_seos").Where("tenant_id = ?", seodetails.TenantId).UpdateColumns(map[string]interface{}{"site_map_name": seodetails.SiteMapName, "site_map_path": seodetails.SiteMapPath}).Error; err != nil {
+			if err := DB.Table("tbl_go_template_seos").Where("tenant_id = ? and website_id=?", seodetails.TenantId, seodetails.WebsiteId).UpdateColumns(map[string]interface{}{"site_map_name": seodetails.SiteMapName, "site_map_path": seodetails.SiteMapPath}).Error; err != nil {
 
 				return err
 			}

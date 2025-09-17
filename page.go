@@ -6,7 +6,7 @@ import (
 )
 
 // PageList
-func (menu *Menu) GetTemplatePageList(limit int, offset int, filter Filter, tenantid string) ([]TblTemplatePages, int, error) {
+func (menu *Menu) GetTemplatePageList(limit int, offset int, filter Filter, tenantid string, websiteid int) ([]TblTemplatePages, int, error) {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
@@ -16,9 +16,9 @@ func (menu *Menu) GetTemplatePageList(limit int, offset int, filter Filter, tena
 	menumodel.DataAccess = menu.DataAccess
 	menumodel.Userid = menu.UserId
 
-	_, totalcount, _ := menumodel.TemplatePageList(0, 0, filter, menu.DB, tenantid)
+	_, totalcount, _ := menumodel.TemplatePageList(0, 0, filter, menu.DB, tenantid, websiteid)
 
-	pagelist, _, cerr := menumodel.TemplatePageList(limit, offset, filter, menu.DB, tenantid)
+	pagelist, _, cerr := menumodel.TemplatePageList(limit, offset, filter, menu.DB, tenantid, websiteid)
 
 	if cerr != nil {
 
@@ -146,7 +146,8 @@ func (menu *Menu) PageStatusChange(pageid int, status int, userid int, tenantid 
 	}
 	return true, nil
 }
-//GetpagebySlug
+
+// GetpagebySlug
 func (menu *Menu) GetPageBySlug(slug string, tenantid string) (TblTemplatePages, error) {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
