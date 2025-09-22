@@ -96,6 +96,8 @@ func (menu *Menu) CreateMenus(req MenuCreate) (TblMenus, error) {
 
 	menus.WebsiteId = req.WebsiteId
 
+	menus.ListingsIds = req.ListingsIds
+
 	menus.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	menus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
@@ -216,7 +218,7 @@ func (menu *Menu) CheckMenuName(id int, name string, websiteid int, tenantid str
 
 	var menudet TblMenus
 
-	err := menumodel.CheckMenuName(menudet, id, name,websiteid, menu.DB, tenantid)
+	err := menumodel.CheckMenuName(menudet, id, name, websiteid, menu.DB, tenantid)
 
 	if err != nil {
 

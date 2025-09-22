@@ -34,6 +34,7 @@ type TblMenus struct {
 	MenuitemCount int `gorm:"-"`
 	Count         int `gorm:"-"`
 	WebsiteId     int
+	ListingsIds   string
 }
 
 type MenuModel struct {
@@ -55,6 +56,7 @@ type MenuCreate struct {
 	Type        string
 	TypeId      int
 	WebsiteId   int
+	ListingsIds string
 }
 
 // Menu Listing
@@ -187,13 +189,13 @@ func (menu *MenuModel) CheckMenuName(menureq TblMenus, menuid int, name string, 
 
 	if menuid == 0 {
 
-		if err := DB.Debug().Table("tbl_menus").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and is_deleted=0 and website_id=? and tenant_id = ?", name,websiteid, tenantid).First(&menureq).Error; err != nil {
+		if err := DB.Debug().Table("tbl_menus").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and is_deleted=0 and website_id=? and tenant_id = ?", name, websiteid, tenantid).First(&menureq).Error; err != nil {
 
 			return err
 		}
 	} else {
 
-		if err := DB.Table("tbl_menus").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0 and website_id=? and  tenant_id = ?", name,websiteid, menuid, tenantid).First(&menureq).Error; err != nil {
+		if err := DB.Table("tbl_menus").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0 and website_id=? and  tenant_id = ?", name, websiteid, menuid, tenantid).First(&menureq).Error; err != nil {
 
 			return err
 		}
