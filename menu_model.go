@@ -146,7 +146,8 @@ func (menu *MenuModel) GetMenuTree(menuid int, DB *gorm.DB, tenantid string) ([]
 			url_path,
 			type,
 			type_id,
-			is_deleted
+			is_deleted,
+			listings_ids
 			FROM tbl_menus
 			WHERE id = ? and  tenant_id =?
 			UNION ALL
@@ -158,7 +159,8 @@ func (menu *MenuModel) GetMenuTree(menuid int, DB *gorm.DB, tenantid string) ([]
 			me.url_path,
 			me.type,
 			me.type_id,
-			me.is_deleted
+			me.is_deleted,
+			me.listings_ids
 			FROM tbl_menus AS me
 			JOIN me_tree ON me.parent_id = me_tree.id and  me.tenant_id =?
 		)
@@ -195,7 +197,7 @@ func (menu *MenuModel) CheckMenuName(menureq TblMenus, menuid int, name string, 
 		}
 	} else {
 
-		if err := DB.Table("tbl_menus").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0 and website_id=? and  tenant_id = ?", name, websiteid, menuid, tenantid).First(&menureq).Error; err != nil {
+		if err := DB.Table("tbl_menus").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0 and website_id=? and  tenant_id = ?", name, menuid, websiteid, tenantid).First(&menureq).Error; err != nil {
 
 			return err
 		}
