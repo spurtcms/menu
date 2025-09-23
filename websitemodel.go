@@ -117,7 +117,7 @@ func (menu *MenuModel) CheckSiteName(name string, webid int, DB *gorm.DB) error 
 		}
 	} else {
 
-		if err := DB.Table("tbl_websites").Where("name = ? AND id not is(?) and  is_deleted = 0 ", name, webid).First(&website).Error; err != nil {
+		if err := DB.Table("tbl_websites").Where("name = ? AND id not in(?) and  is_deleted = 0 ", name, webid).First(&website).Error; err != nil {
 
 			return err
 		}
