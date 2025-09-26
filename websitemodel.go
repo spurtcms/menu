@@ -24,6 +24,7 @@ type TblWebsite struct {
 	TemplateName  string    `gorm:"column:template_name;->;<-:false"` // read-only from join
 	TemplateImage string    `gorm:"column:template_image;->;<-:false"`
 	CreatedDate   string    `gorm:"-:migration;<-:false"`
+	Subdomain     string    `gorm:"-:migration;<-:false"`
 }
 
 // createwebsite
@@ -125,4 +126,17 @@ func (menu *MenuModel) CheckSiteName(name string, webid int, DB *gorm.DB) error 
 
 	return nil
 
+}
+
+//Delete Website//
+
+func (menu *MenuModel) DeleteWebsiteById(website *TblWebsite, DB *gorm.DB) error {
+
+	if err := DB.Debug().Table("tbl_websites").Where("id=? and  tenant_id = ?", website.Id, website.TenantId).Updates(TblWebsite{IsDeleted: website.IsDeleted, DeletedOn: website.DeletedOn, DeletedBy: website.DeletedBy}).Error; err != nil {
+
+		return err
+
+	}
+
+	return nil
 }

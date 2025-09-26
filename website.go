@@ -2,7 +2,7 @@ package menu
 
 import "time"
 
-func (menu *Menu) CreateWebsite(websiteinfo TblWebsite) ( TblWebsite,error ){
+func (menu *Menu) CreateWebsite(websiteinfo TblWebsite) (TblWebsite, error) {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
@@ -11,11 +11,11 @@ func (menu *Menu) CreateWebsite(websiteinfo TblWebsite) ( TblWebsite,error ){
 
 	websiteinfo.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-	website,err := menumodel.CreateWebsite(&websiteinfo, menu.DB)
+	website, err := menumodel.CreateWebsite(&websiteinfo, menu.DB)
 
 	if err != nil {
 
-		return TblWebsite{},err
+		return TblWebsite{}, err
 	}
 
 	return website, nil
@@ -70,6 +70,33 @@ func (menu *Menu) UpdateWebsite(req TblWebsite) (TblWebsite, error) {
 
 }
 
+func (menu *Menu) DeleteWebsite(websiteid int, userid int, tenantid string) error {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return AuthError
+	}
+
+	var webdet TblWebsite
+
+	webdet.DeletedBy = userid
+
+	webdet.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+	webdet.IsDeleted = 1
+
+	webdet.Id = websiteid
+
+	webdet.TenantId = tenantid
+
+	err := menumodel.DeleteWebsiteById(&webdet, menu.DB)
+
+	if err != nil {
+
+		return err
+	}
+	return nil
+}
 func (menu *Menu) GetWebsiteById(id int, tenantid string) (TblWebsite, error) {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
@@ -102,7 +129,7 @@ func (menu *Menu) GetWebsiteByName(name string) (TblWebsite, error) {
 	return website, nil
 }
 
-func (menu *Menu) CheckSiteName(sitename string,webid int) error {
+func (menu *Menu) CheckSiteName(sitename string, webid int) error {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
