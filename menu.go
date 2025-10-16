@@ -98,6 +98,8 @@ func (menu *Menu) CreateMenus(req MenuCreate) (TblMenus, error) {
 
 	menus.ListingsIds = req.ListingsIds
 
+	menus.CategoryIds = req.CategoryIds
+
 	menus.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	menus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
@@ -331,6 +333,18 @@ func (menu *Menu) GetMenuBySlugName(slug string, websiteid int, tenantid string)
 	}
 
 	GetData, _ := menumodel.GetMenuBySlugName(slug, websiteid, menu.DB, tenantid)
+
+	return GetData, nil
+}
+
+func (menu *Menu) GetmenusByTenantId(tenantid string) ([]TblMenus, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return []TblMenus{}, AuthError
+	}
+
+	GetData, _ := menumodel.GetmenusByTenantId(menu.DB, tenantid)
 
 	return GetData, nil
 }

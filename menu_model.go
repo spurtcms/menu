@@ -35,6 +35,7 @@ type TblMenus struct {
 	Count         int `gorm:"-"`
 	WebsiteId     int
 	ListingsIds   string
+	CategoryIds   string
 }
 
 type MenuModel struct {
@@ -57,6 +58,7 @@ type MenuCreate struct {
 	TypeId      int
 	WebsiteId   int
 	ListingsIds string
+	CategoryIds string
 }
 
 // Menu Listing
@@ -258,6 +260,18 @@ func (menu *MenuModel) GetMenuBySlugName(menuslug string, websiteid int, DB *gor
 	if err := DB.Table("tbl_menus").Where("slug_name=? and tenant_id=? and is_deleted=0 and website_id=?", menuslug, tenantid, websiteid).First(&menudet).Error; err != nil {
 
 		return TblMenus{}, err
+	}
+
+	return menudet, nil
+}
+
+func (menu *MenuModel) GetmenusByTenantId(DB *gorm.DB, tenantid string) ([]TblMenus, error) {
+
+	var menudet []TblMenus
+
+	if err := DB.Debug().Table("tbl_menus").Where("tenant_id=? and is_deleted=0", tenantid).Find(&menudet).Error; err != nil {
+
+		return []TblMenus{}, err
 	}
 
 	return menudet, nil
