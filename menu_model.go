@@ -269,7 +269,7 @@ func (menu *MenuModel) GetmenusByTenantId(DB *gorm.DB, tenantid string) ([]TblMe
 
 	var menudet []TblMenus
 
-	if err := DB.Debug().Table("tbl_menus").Where("tenant_id=? and is_deleted=0", tenantid).Find(&menudet).Error; err != nil {
+	if err := DB.Table("tbl_menus").Where("tenant_id=? and is_deleted=0", tenantid).Order("id DESC").Find(&menudet).Error; err != nil {
 
 		return []TblMenus{}, err
 	}
