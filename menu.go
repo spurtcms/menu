@@ -100,6 +100,10 @@ func (menu *Menu) CreateMenus(req MenuCreate) (TblMenus, error) {
 
 	menus.CategoryIds = req.CategoryIds
 
+	menus.ImageName = req.ImageName
+
+	menus.ImagePath = req.ImagePath
+
 	menus.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	menus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
@@ -166,6 +170,10 @@ func (menu *Menu) UpdateMenu(req MenuCreate) (TblMenus, error) {
 	menudet.TypeId = req.TypeId
 
 	menudet.WebsiteId = req.WebsiteId
+
+	menudet.ImageName =req.ImageName
+
+	menudet.ImagePath =req.ImagePath
 
 	updatemenu, err := menumodel.UpdateMenu(&menudet, menu.DB)
 
