@@ -153,7 +153,9 @@ func (menu *MenuModel) GetMenuTree(menuid int, DB *gorm.DB, tenantid string) ([]
 			type,
 			type_id,
 			is_deleted,
-			listings_ids
+			listings_ids,
+			image_path,
+			image_name
 			FROM tbl_menus
 			WHERE id = ? and  tenant_id =?
 			UNION ALL
@@ -166,7 +168,9 @@ func (menu *MenuModel) GetMenuTree(menuid int, DB *gorm.DB, tenantid string) ([]
 			me.type,
 			me.type_id,
 			me.is_deleted,
-			me.listings_ids
+			me.listings_ids,
+			me.image_path,
+			me.image_name
 			FROM tbl_menus AS me
 			JOIN me_tree ON me.parent_id = me_tree.id and  me.tenant_id =?
 		)
