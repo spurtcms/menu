@@ -171,9 +171,9 @@ func (menu *Menu) UpdateMenu(req MenuCreate) (TblMenus, error) {
 
 	menudet.WebsiteId = req.WebsiteId
 
-	menudet.ImageName =req.ImageName
+	menudet.ImageName = req.ImageName
 
-	menudet.ImagePath =req.ImagePath
+	menudet.ImagePath = req.ImagePath
 
 	updatemenu, err := menumodel.UpdateMenu(&menudet, menu.DB)
 
@@ -355,4 +355,21 @@ func (menu *Menu) GetmenusByTenantId(tenantid string) ([]TblMenus, error) {
 	GetData, _ := menumodel.GetmenusByTenantId(menu.DB, tenantid)
 
 	return GetData, nil
+}
+
+func (menu *Menu) UpdateMenuItemOrder(menuitems []OrderItem, userid int, tenantid string) error {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return AuthError
+	}
+
+	err := menumodel.UpdateMenuItemOrder(menu.DB,menuitems, userid, tenantid)
+
+	if err != nil {
+
+		return err
+	}
+
+	return nil
 }

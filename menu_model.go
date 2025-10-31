@@ -38,6 +38,7 @@ type TblMenus struct {
 	CategoryIds   string
 	ImageName     string
 	ImagePath     string
+	OrderIndex    int
 }
 
 type MenuModel struct {
@@ -63,6 +64,12 @@ type MenuCreate struct {
 	CategoryIds string
 	ImagePath   string
 	ImageName   string
+}
+type OrderItem struct {
+	MenuItemID   int  `json:"menuitem_id"`
+	OrderIndex   int  `json:"orderindex"`
+	ParentMenuID int  `json:"parentmenu_id"`
+	IsChild      bool `json:"is_child"`
 }
 
 // Menu Listing
@@ -155,7 +162,8 @@ func (menu *MenuModel) GetMenuTree(menuid int, DB *gorm.DB, tenantid string) ([]
 			is_deleted,
 			listings_ids,
 			image_path,
-			image_name
+			image_name,
+			order_index
 			FROM tbl_menus
 			WHERE id = ? and  tenant_id =?
 			UNION ALL
@@ -170,12 +178,13 @@ func (menu *MenuModel) GetMenuTree(menuid int, DB *gorm.DB, tenantid string) ([]
 			me.is_deleted,
 			me.listings_ids,
 			me.image_path,
-			me.image_name
+			me.image_name,
+			me.order_index
 			FROM tbl_menus AS me
 			JOIN me_tree ON me.parent_id = me_tree.id and  me.tenant_id =?
 		)
 		SELECT *
-		FROM me_tree WHERE IS_DELETED = 0 order by id desc
+		FROM me_tree WHERE IS_DELETED = 0 order by order_index asc
 	`, menuid, tenantid, tenantid).Scan(&menus).Error
 	if err != nil {
 		return nil, err
@@ -277,10 +286,22 @@ func (menu *MenuModel) GetmenusByTenantId(DB *gorm.DB, tenantid string) ([]TblMe
 
 	var menudet []TblMenus
 
-	if err := DB.Table("tbl_menus").Where("tenant_id=? and is_deleted=0", tenantid).Order("id DESC").Find(&menudet).Error; err != nil {
+	if err := DB.Table("tbl_menus").Where("tenant_id=? and is_deleted=0 and status=1", tenantid).Order("order_index asc").Find(&menudet).Error; err != nil {
 
 		return []TblMenus{}, err
 	}
 
 	return menudet, nil
+}
+func (menu *MenuModel) UpdateMenuItemOrder(DB *gorm.DB, menuitems []OrderItem, userid int, tenantid string) error {
+	ModifiedOn, _ := time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+	for _, item := range menuitems {
+
+		if err := DB.Table("tbl_menus").Where("id=? and tenant_id=? and is_deleted=0", item.MenuItemID, tenantid).UpdateColumns(map[string]interface{}{"order_index": item.OrderIndex, "parent_id": item.ParentMenuID, "modified_by": userid, "modified_on": ModifiedOn}).Error; err != nil {
+
+			return err
+		}
+	}
+	return nil
 }
