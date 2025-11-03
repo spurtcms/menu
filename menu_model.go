@@ -282,11 +282,11 @@ func (menu *MenuModel) GetMenuBySlugName(menuslug string, websiteid int, DB *gor
 	return menudet, nil
 }
 
-func (menu *MenuModel) GetmenusByTenantId(DB *gorm.DB, tenantid string) ([]TblMenus, error) {
+func (menu *MenuModel) GetmenusByTenantId(websiteid int, DB *gorm.DB, tenantid string) ([]TblMenus, error) {
 
 	var menudet []TblMenus
 
-	if err := DB.Table("tbl_menus").Where("tenant_id=? and is_deleted=0 and status=1", tenantid).Order("order_index asc").Find(&menudet).Error; err != nil {
+	if err := DB.Table("tbl_menus").Where("tenant_id=? and website_id=? and is_deleted=0 and status=1", tenantid, websiteid).Order("order_index asc").Find(&menudet).Error; err != nil {
 
 		return []TblMenus{}, err
 	}

@@ -349,14 +349,14 @@ func (menu *Menu) GetMenuBySlugName(slug string, websiteid int, tenantid string)
 	return GetData, nil
 }
 
-func (menu *Menu) GetmenusByTenantId(tenantid string) ([]TblMenus, error) {
+func (menu *Menu) GetmenusByTenantId(websiteid int, tenantid string) ([]TblMenus, error) {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
 		return []TblMenus{}, AuthError
 	}
 
-	GetData, _ := menumodel.GetmenusByTenantId(menu.DB, tenantid)
+	GetData, _ := menumodel.GetmenusByTenantId(websiteid,menu.DB, tenantid)
 
 	return GetData, nil
 }
