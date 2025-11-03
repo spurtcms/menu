@@ -175,6 +175,10 @@ func (menu *Menu) UpdateMenu(req MenuCreate) (TblMenus, error) {
 
 	menudet.ImagePath = req.ImagePath
 
+	menudet.CategoryIds = req.CategoryIds
+
+	menudet.ListingsIds = req.ListingsIds
+
 	updatemenu, err := menumodel.UpdateMenu(&menudet, menu.DB)
 
 	if err != nil {
@@ -364,7 +368,7 @@ func (menu *Menu) UpdateMenuItemOrder(menuitems []OrderItem, userid int, tenanti
 		return AuthError
 	}
 
-	err := menumodel.UpdateMenuItemOrder(menu.DB,menuitems, userid, tenantid)
+	err := menumodel.UpdateMenuItemOrder(menu.DB, menuitems, userid, tenantid)
 
 	if err != nil {
 
