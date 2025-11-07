@@ -104,6 +104,12 @@ func (menu *Menu) CreateMenus(req MenuCreate) (TblMenus, error) {
 
 	menus.ImagePath = req.ImagePath
 
+	menus.MetaTitle = req.MetaTitle
+
+	menus.MetaDescription = req.MetaDescription
+
+	menus.MetaKeywords = req.MetaKeywords
+
 	menus.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	menus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
@@ -178,6 +184,14 @@ func (menu *Menu) UpdateMenu(req MenuCreate) (TblMenus, error) {
 	menudet.CategoryIds = req.CategoryIds
 
 	menudet.ListingsIds = req.ListingsIds
+
+	menudet.MetaTitle = req.MetaTitle
+
+	menudet.MetaDescription = req.MetaDescription
+
+	menudet.MetaKeywords = req.MetaKeywords
+
+	menudet.UrlPath = req.UrlPath
 
 	updatemenu, err := menumodel.UpdateMenu(&menudet, menu.DB)
 
@@ -356,7 +370,7 @@ func (menu *Menu) GetmenusByTenantId(websiteid int, tenantid string) ([]TblMenus
 		return []TblMenus{}, AuthError
 	}
 
-	GetData, _ := menumodel.GetmenusByTenantId(websiteid,menu.DB, tenantid)
+	GetData, _ := menumodel.GetmenusByTenantId(websiteid, menu.DB, tenantid)
 
 	return GetData, nil
 }

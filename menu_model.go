@@ -13,32 +13,35 @@ type Filter struct {
 }
 
 type TblMenus struct {
-	Id            int
-	Name          string
-	Description   string
-	TenantId      string
-	CreatedOn     time.Time
-	CreatedBy     int
-	IsDeleted     int
-	DeletedOn     time.Time `gorm:"DEFAULT:NULL"`
-	DeletedBy     int       `gorm:"DEFAULT:NULL"`
-	ModifiedOn    time.Time `gorm:"DEFAULT:NULL"`
-	ModifiedBy    int       `gorm:"DEFAULT:NULL"`
-	DateString    string    `gorm:"-"`
-	ParentId      int
-	UrlPath       string
-	SlugName      string
-	Status        int
-	Type          string
-	TypeId        int
-	MenuitemCount int `gorm:"-"`
-	Count         int `gorm:"-"`
-	WebsiteId     int
-	ListingsIds   string
-	CategoryIds   string
-	ImageName     string
-	ImagePath     string
-	OrderIndex    int
+	Id              int
+	Name            string
+	Description     string
+	TenantId        string
+	CreatedOn       time.Time
+	CreatedBy       int
+	IsDeleted       int
+	DeletedOn       time.Time `gorm:"DEFAULT:NULL"`
+	DeletedBy       int       `gorm:"DEFAULT:NULL"`
+	ModifiedOn      time.Time `gorm:"DEFAULT:NULL"`
+	ModifiedBy      int       `gorm:"DEFAULT:NULL"`
+	DateString      string    `gorm:"-"`
+	ParentId        int
+	UrlPath         string
+	SlugName        string
+	Status          int
+	Type            string
+	TypeId          int
+	MenuitemCount   int `gorm:"-"`
+	Count           int `gorm:"-"`
+	WebsiteId       int
+	ListingsIds     string
+	CategoryIds     string
+	ImageName       string
+	ImagePath       string
+	OrderIndex      int
+	MetaTitle       string
+	MetaDescription string
+	MetaKeywords    string
 }
 
 type MenuModel struct {
@@ -47,23 +50,26 @@ type MenuModel struct {
 }
 
 type MenuCreate struct {
-	Id          int
-	MenuName    string
-	MenuSlug    string
-	Description string
-	ParentId    int
-	TenantId    string
-	CreatedBy   int
-	ModifiedBy  int
-	Status      int
-	UrlPath     string
-	Type        string
-	TypeId      int
-	WebsiteId   int
-	ListingsIds string
-	CategoryIds string
-	ImagePath   string
-	ImageName   string
+	Id              int
+	MenuName        string
+	MenuSlug        string
+	Description     string
+	ParentId        int
+	TenantId        string
+	CreatedBy       int
+	ModifiedBy      int
+	Status          int
+	UrlPath         string
+	Type            string
+	TypeId          int
+	WebsiteId       int
+	ListingsIds     string
+	CategoryIds     string
+	ImagePath       string
+	ImageName       string
+	MetaTitle       string
+	MetaDescription string
+	MetaKeywords    string
 }
 type OrderItem struct {
 	MenuItemID   int  `json:"menuitem_id"`
@@ -138,7 +144,7 @@ func (menu *MenuModel) UpdateMenu(menureq *TblMenus, DB *gorm.DB) (TblMenus, err
 			return TblMenus{}, err
 		}
 	} else {
-		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "url_path": menureq.UrlPath, "parent_id": menureq.ParentId, "status": menureq.Status, "slug_name": menureq.SlugName, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "type": menureq.Type, "type_id": menureq.TypeId, "website_id": menureq.WebsiteId, "image_name": menureq.ImageName, "image_path": menureq.ImagePath, "listings_ids": menureq.ListingsIds, "category_ids": menureq.CategoryIds}).Error; err != nil {
+		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "url_path": menureq.UrlPath, "parent_id": menureq.ParentId, "status": menureq.Status, "slug_name": menureq.SlugName, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "type": menureq.Type, "type_id": menureq.TypeId, "website_id": menureq.WebsiteId, "image_name": menureq.ImageName, "image_path": menureq.ImagePath, "listings_ids": menureq.ListingsIds, "category_ids": menureq.CategoryIds, "meta_title": menureq.MetaTitle, "meta_description": menureq.MetaDescription, "meta_keywords": menureq.MetaKeywords}).Error; err != nil {
 
 			return TblMenus{}, err
 		}
