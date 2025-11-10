@@ -212,17 +212,17 @@ func (menu *MenuModel) DeleteMenuById(menureq *TblMenus, menuid []int, tenantid 
 }
 
 // Check Menuname is already exists
-func (menu *MenuModel) CheckMenuName(menureq TblMenus, menuid int, name string, websiteid int, DB *gorm.DB, tenantid string) error {
+func (menu *MenuModel) CheckMenuName(menureq TblMenus, menuid int, name string, parentid int, websiteid int, DB *gorm.DB, tenantid string) error {
 
 	if menuid == 0 {
 
-		if err := DB.Debug().Table("tbl_menus").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and is_deleted=0 and website_id=? and tenant_id = ?", name, websiteid, tenantid).First(&menureq).Error; err != nil {
+		if err := DB.Debug().Table("tbl_menus").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and is_deleted=0 and website_id=? and tenant_id = ? and parent_id=?", name, websiteid, tenantid,parentid).First(&menureq).Error; err != nil {
 
 			return err
 		}
 	} else {
 
-		if err := DB.Table("tbl_menus").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0 and website_id=? and  tenant_id = ?", name, menuid, websiteid, tenantid).First(&menureq).Error; err != nil {
+		if err := DB.Table("tbl_menus").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0 and website_id=? and  tenant_id = ? and parent_id=?", name, menuid, websiteid, tenantid,parentid).First(&menureq).Error; err != nil {
 
 			return err
 		}

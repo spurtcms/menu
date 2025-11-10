@@ -242,11 +242,11 @@ func (menu *Menu) DeleteMenu(menuid int, modifiedby int, tenantid string) error 
 }
 
 // Check Menuname is already exists
-func (menu *Menu) CheckMenuName(id int, name string, websiteid int, tenantid string) (bool, error) {
+func (menu *Menu) CheckMenuName(id int, name string, parentit int, websiteid int, tenantid string) (bool, error) {
 
 	var menudet TblMenus
 
-	err := menumodel.CheckMenuName(menudet, id, name, websiteid, menu.DB, tenantid)
+	err := menumodel.CheckMenuName(menudet, id, name, parentit, websiteid, menu.DB, tenantid)
 
 	if err != nil {
 
