@@ -15,6 +15,7 @@ type TblWidgets struct {
 	SortOrder       int       `gorm:"type:integer"`
 	WidgetType      string    `gorm:"type:character varying"`
 	TenantId        string    `gorm:"type:character varying"`
+	WebsiteId       int       `gorm:"type:integer"`
 	Status          int       `gorm:"type:integer;DEFAULT:1"`
 	MetaTitle       string    `gorm:"type:character varying"`
 	MetaDescription string    `gorm:"type:character varying"`
@@ -28,6 +29,7 @@ type TblWidgets struct {
 	ModifiedBy      int       `gorm:"DEFAULT:NULL;type:integer"`
 	CreatedDate     string    `gorm:"-:migration;<-:false"`
 	ModifiedDate    string    `gorm:"-:migration;<-:false"`
+	ProductIds      string    `gorm:"-:migration;<-:false"`
 }
 
 type TblWidgetProducts struct {
@@ -96,6 +98,16 @@ func (menu *MenuModel) CreateWidget(db *gorm.DB, widget *TblWidgets) (TblWidgets
 	}
 	return *widget, nil
 
+}
+
+func (menu *MenuModel) InsertWidgetProductIds(db *gorm.DB, widget *TblWidgetProducts) error {
+
+	if err := db.Table("tbl_widget_products").Create(&widget).Error; err != nil {
+
+		return err
+	}
+
+	return nil
 }
 
 // Get WidgetById

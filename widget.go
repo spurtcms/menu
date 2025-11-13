@@ -1,6 +1,10 @@
 package menu
 
 import (
+	"fmt"
+	"strconv"
+
+	"strings"
 	"time"
 )
 
@@ -41,6 +45,37 @@ func (menu *Menu) CreateWidget(widget *TblWidgets) (TblWidgets, error) {
 
 		return TblWidgets{}, err
 
+	}
+
+	if widget.ProductIds != "" {
+
+		newids := strings.Split(widget.ProductIds, ",")
+
+		var intids []int
+		for _, idStr := range newids {
+
+			id, _ := strconv.Atoi(idStr)
+
+			intids = append(intids, id)
+		}
+		createdon, _ := time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+		for _, val := range intids {
+
+			widgerproduct := TblWidgetProducts{
+
+				WidgetId:  widget.Id,
+				ProductId: val,
+				CreatedBy: widget.CreatedBy,
+				CreatedOn: createdon,
+				TenantId:  widget.TenantId,
+			}
+			err := menumodel.InsertWidgetProductIds(menu.DB, &widgerproduct)
+
+			if err != nil {
+
+				fmt.Println(err)
+			}
+		}
 	}
 	return widgetdetail, nil
 
