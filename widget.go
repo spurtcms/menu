@@ -81,30 +81,31 @@ func (menu *Menu) CreateWidget(widget *TblWidgets) (TblWidgets, error) {
 
 }
 
-func (menu *Menu) GetWidgetById(widgetid int, tenantid string) (TblWidgets, error) {
+func (menu *Menu) GetWidgetById(widgetid int, tenantid string) (TblWidgets, []TblWidgetProducts, error) {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
-		return TblWidgets{}, AuthError
+		return TblWidgets{}, []TblWidgetProducts{}, AuthError
 	}
-	widgetdetail, err := menumodel.GetWidgetById(menu.DB, widgetid, tenantid)
+	widgetdetail, product, err := menumodel.GetWidgetById(menu.DB, widgetid, tenantid)
 
 	if err != nil {
 
-		return TblWidgets{}, err
+		return TblWidgets{}, []TblWidgetProducts{}, err
 
 	}
-	return widgetdetail, nil
+	return widgetdetail, product, nil
 }
 
 // UpdateWidget
-func (menu *Menu) UpdateWidget(widget *TblWidgets) (TblWidgets, error) {
+func (menu *Menu) UpdateWidget(widget *TblWidgets, widgetid int) (TblWidgets, error) {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
 		return TblWidgets{}, AuthError
 	}
 
+	widget.Id = widgetid
 	widget.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	widgetdetail, err := menumodel.UpdateWidget(menu.DB, widget)

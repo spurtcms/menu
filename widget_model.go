@@ -111,15 +111,23 @@ func (menu *MenuModel) InsertWidgetProductIds(db *gorm.DB, widget *TblWidgetProd
 }
 
 // Get WidgetById
-func (menu *MenuModel) GetWidgetById(DB *gorm.DB, pageid int, tenantid string) (page TblWidgets, err error) {
+func (menu *MenuModel) GetWidgetById(DB *gorm.DB, widgetid int, tenantid string) (widget TblWidgets, products []TblWidgetProducts, err error) {
 
-	if err := DB.Table("tbl_widgets").Where("is_deleted = 0 and id=? and tenant_id=?", pageid, tenantid).Order("id asc").Find(&page).Error; err != nil {
-
-		return TblWidgets{}, err
+	if err := DB.Debug().
+		Table("tbl_widgets").
+		Where("is_deleted = 0 AND id = ? AND tenant_id = ?", widgetid, tenantid).
+		Take(&widget).Error; err != nil {
+		return TblWidgets{}, nil, err
 	}
 
-	return page, nil
+	if err := DB.Debug().
+		Table("tbl_widget_products").
+		Where("widget_id = ? and tenant_id=?", widgetid, tenantid).
+		Find(&products).Error; err != nil {
+		return widget, nil, err
+	}
 
+	return widget, products, nil
 }
 
 // Update Widget
