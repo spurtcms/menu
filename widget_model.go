@@ -1,0 +1,156 @@
+package menu
+
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
+
+type TblWidgets struct {
+	Id              int       `gorm:"primaryKey;auto_increment;type:serial"`
+	Title           string    `gorm:"type:character varying"`
+	LongTitle       string    `gorm:"type:character varying"`
+	Slug            string    `gorm:"type:character varying"`
+	Position        string    `gorm:"type:character varying"`
+	SortOrder       int       `gorm:"type:integer"`
+	WidgetType      string    `gorm:"type:character varying"`
+	TenantId        string    `gorm:"type:character varying"`
+	Status          int       `gorm:"type:integer;DEFAULT:1"`
+	MetaTitle       string    `gorm:"type:character varying"`
+	MetaDescription string    `gorm:"type:character varying"`
+	MetaKeywords    string    `gorm:"type:character varying"`
+	IsDeleted       int       `gorm:"type:integer;DEFAULT:0"`
+	DeletedOn       time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
+	DeletedBy       int       `gorm:"DEFAULT:NULL"`
+	CreatedOn       time.Time `gorm:"type:timestamp without time zone"`
+	CreatedBy       int       `gorm:"type:integer"`
+	ModifiedOn      time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
+	ModifiedBy      int       `gorm:"DEFAULT:NULL;type:integer"`
+	CreatedDate     string    `gorm:"-:migration;<-:false"`
+	ModifiedDate    string    `gorm:"-:migration;<-:false"`
+}
+
+type TblWidgetProducts struct {
+	Id        int       `gorm:"primaryKey;auto_increment;type:serial"`
+	WidgetId  int       `gorm:"type:integer"`
+	ProductId int       `gorm:"type:integer"`
+	TenantId  string    `gorm:"type:character varying"`
+	CreatedOn time.Time `gorm:"type:timestamp without time zone"`
+	CreatedBy int       `gorm:"type:integer"`
+}
+
+// WidgetList
+func (menu *MenuModel) WidgetList(limit int, offset int, filter Filter, DB *gorm.DB, Tenantid string, websiteid int) (widgets []TblWidgets, count int64, err error) {
+
+	var widgetcount int64
+
+	query := DB.Table("tbl_widgets").Where("is_deleted = 0 and website_id=? and tenant_id = ?", websiteid, Tenantid).Order("tbl_widgets.created_on desc")
+
+	if filter.Keyword != "" {
+
+		query = query.Where("LOWER(TRIM(name)) like LOWER(TRIM(?))", "%"+filter.Keyword+"%")
+	}
+
+	if filter.ToDate != "" {
+		query = query.Where("tbl_widgets.modified_on >= ? AND tbl_widgets.modified_on < ?",
+			filter.ToDate+" 00:00:00",
+			filter.ToDate+" 23:59:59")
+	}
+	if filter.Status != "" {
+
+		if filter.Status == "Active" {
+
+			query = query.Where("tbl_widgets.status=?", 1)
+		}
+		if filter.Status == "Inactive" {
+
+			query = query.Where("tbl_widgets.status=?", 0)
+		}
+	}
+	if limit != 0 {
+
+		query.Limit(limit).Offset(offset).Find(&widgets)
+
+		return widgets, widgetcount, nil
+
+	}
+
+	query.Find(&widgets).Count(&widgetcount)
+
+	if query.Error != nil {
+
+		return []TblWidgets{}, 0, query.Error
+	}
+
+	return widgets, widgetcount, nil
+
+}
+
+//create Widget
+
+func (menu *MenuModel) CreateWidget(db *gorm.DB, widget *TblWidgets) (TblWidgets, error) {
+
+	if err := db.Table("tbl_widgets").Create(&widget).Error; err != nil {
+
+		return TblWidgets{}, err
+	}
+	return *widget, nil
+
+}
+
+// Get WidgetById
+func (menu *MenuModel) GetWidgetById(DB *gorm.DB, pageid int, tenantid string) (page TblWidgets, err error) {
+
+	if err := DB.Table("tbl_widgets").Where("is_deleted = 0 and id=? and tenant_id=?", pageid, tenantid).Order("id asc").Find(&page).Error; err != nil {
+
+		return TblWidgets{}, err
+	}
+
+	return page, nil
+
+}
+
+// Update Widget
+func (menu *MenuModel) UpdateWidget(db *gorm.DB, page *TblWidgets) (TblWidgets, error) {
+
+	if err := db.Table("tbl_widgets").Where("id = ? and tenant_id=?", page.Id, page.TenantId).Updates(page).Error; err != nil {
+		return TblWidgets{}, err
+	}
+	return *page, nil
+
+}
+
+// Status change func
+func (menu *MenuModel) WidgetStatusChange(page TblWidgets, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_widgets").Where("id=? and tenant_id=?", page.Id, page.TenantId).UpdateColumns(map[string]interface{}{"status": page.Status, "modified_by": page.ModifiedBy, "modified_on": page.ModifiedOn}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+// DeleteWidgetById
+func (menu *MenuModel) DeleteWidgetById(page *TblWidgets, tenantid string, DB *gorm.DB) error {
+
+	if err := DB.Debug().Table("tbl_widgets").Where("id=? and  tenant_id = ?", page.Id, tenantid).Updates(TblWidgets{IsDeleted: page.IsDeleted, DeletedOn: page.DeletedOn, DeletedBy: page.DeletedBy}).Error; err != nil {
+
+		return err
+
+	}
+
+	return nil
+}
+
+// Get PageBySlug
+func (menu *MenuModel) GetWidgetBySlug(DB *gorm.DB, pageslug string, tenantid string) (page TblWidgets, err error) {
+
+	if err := DB.Table("tbl_widgets").Where("is_deleted = 0 and slug=? and tenant_id=?", pageslug, tenantid).Order("id asc").Find(&page).Error; err != nil {
+
+		return TblWidgets{}, err
+	}
+
+	return page, nil
+
+}
