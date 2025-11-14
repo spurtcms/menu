@@ -131,12 +131,12 @@ func (menu *MenuModel) GetWidgetById(DB *gorm.DB, widgetid int, tenantid string)
 }
 
 // Update Widget
-func (menu *MenuModel) UpdateWidget(db *gorm.DB, page *TblWidgets) (TblWidgets, error) {
+func (menu *MenuModel) UpdateWidget(db *gorm.DB, widget *TblWidgets) (TblWidgets, error) {
 
-	if err := db.Table("tbl_widgets").Where("id = ? and tenant_id=?", page.Id, page.TenantId).Updates(page).Error; err != nil {
+	if err := db.Table("tbl_widgets").Where("id = ? and tenant_id=?", widget.Id, widget.TenantId).UpdateColumns(map[string]interface{}{"status": widget.Status, "modified_by": widget.ModifiedBy, "modified_on": widget.ModifiedOn, "title": widget.Title, "long_title": widget.LongTitle, "position": widget.Position, "sort_order": widget.SortOrder, "meta_title": widget.MetaTitle, "meta_description": widget.MetaDescription, "meta_keywords": widget.MetaKeywords, "slug": widget.Slug, "widget_type": widget.WidgetType, "website_id": widget.WebsiteId}).Error; err != nil {
 		return TblWidgets{}, err
 	}
-	return *page, nil
+	return *widget, nil
 
 }
 
@@ -173,4 +173,17 @@ func (menu *MenuModel) GetWidgetBySlug(DB *gorm.DB, pageslug string, tenantid st
 
 	return page, nil
 
+}
+
+//Delete ProductIds
+
+func (menu *MenuModel) DeleteProductIds(DB *gorm.DB, widgetid int, tenantid string) error {
+
+	if err := DB.Table("tbl_widget_products").
+		Where("widget_id = ? AND tenant_id = ?", widgetid, tenantid).
+		Delete(nil).Error; err != nil {
+
+		return err
+	}
+	return nil
 }
