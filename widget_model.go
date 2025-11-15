@@ -9,31 +9,35 @@ import (
 )
 
 type TblWidgets struct {
-	Id              int                          `gorm:"primaryKey;auto_increment;type:serial"`
-	Title           string                       `gorm:"type:character varying"`
-	LongTitle       string                       `gorm:"type:character varying"`
-	Slug            string                       `gorm:"type:character varying"`
-	Position        string                       `gorm:"type:character varying"`
-	SortOrder       int                          `gorm:"type:integer"`
-	WidgetType      string                       `gorm:"type:character varying"`
-	TenantId        string                       `gorm:"type:character varying"`
-	WebsiteId       int                          `gorm:"type:integer"`
-	Status          int                          `gorm:"type:integer;DEFAULT:1"`
-	MetaTitle       string                       `gorm:"type:character varying"`
-	MetaDescription string                       `gorm:"type:character varying"`
-	MetaKeywords    string                       `gorm:"type:character varying"`
-	IsDeleted       int                          `gorm:"type:integer;DEFAULT:0"`
-	DeletedOn       time.Time                    `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
-	DeletedBy       int                          `gorm:"DEFAULT:NULL"`
-	CreatedOn       time.Time                    `gorm:"type:timestamp without time zone"`
-	CreatedBy       int                          `gorm:"type:integer"`
-	ModifiedOn      time.Time                    `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
-	ModifiedBy      int                          `gorm:"DEFAULT:NULL;type:integer"`
-	CreatedDate     string                       `gorm:"-:migration;<-:false"`
-	ModifiedDate    string                       `gorm:"-:migration;<-:false"`
-	ProductIds      string                       `gorm:"-:migration;<-:false"`
-	EntriesData     []channels.TblChannelEntries `gorm:"-"`
-	ListingData     []listing.TblListing         `gorm:"-"`
+	Id              int       `gorm:"primaryKey;auto_increment;type:serial"`
+	Title           string    `gorm:"type:character varying"`
+	LongTitle       string    `gorm:"type:character varying"`
+	Slug            string    `gorm:"type:character varying"`
+	Position        string    `gorm:"type:character varying"`
+	SortOrder       int       `gorm:"type:integer"`
+	WidgetType      string    `gorm:"type:character varying"`
+	TenantId        string    `gorm:"type:character varying"`
+	WebsiteId       int       `gorm:"type:integer"`
+	Status          int       `gorm:"type:integer;DEFAULT:1"`
+	MetaTitle       string    `gorm:"type:character varying"`
+	MetaDescription string    `gorm:"type:character varying"`
+	MetaKeywords    string    `gorm:"type:character varying"`
+	IsDeleted       int       `gorm:"type:integer;DEFAULT:0"`
+	DeletedOn       time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
+	DeletedBy       int       `gorm:"DEFAULT:NULL"`
+	CreatedOn       time.Time `gorm:"type:timestamp without time zone"`
+	CreatedBy       int       `gorm:"type:integer"`
+	ModifiedOn      time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
+	ModifiedBy      int       `gorm:"DEFAULT:NULL;type:integer"`
+	CreatedDate     string    `gorm:"-:migration;<-:false"`
+	ModifiedDate    string    `gorm:"-:migration;<-:false"`
+	ProductIds      string    `gorm:"-:migration;<-:false"`
+
+	EntriesData []channels.Tblchannelentries `gorm:"-"`
+	ListingData []listing.TblListing         `gorm:"-"`
+
+	WidgetTitle string `gorm:"-:migration;<-:false"`
+	WidgetId    int    `gorm:"-:migration;<-:false"`
 }
 
 type TblWidgetProducts struct {
@@ -192,21 +196,29 @@ func (menu *MenuModel) DeleteProductIds(DB *gorm.DB, widgetid int, tenantid stri
 	return nil
 }
 
+func (menu *MenuModel) FetchBasicWidgetList(DB *gorm.DB, tenantID string, websiteID int) ([]TblWidgets, error) {
+	var widgets []TblWidgets
+	err := DB.Debug().Table("tbl_widgets").Where("is_deleted = 0 AND tenant_id = ? AND website_id = ? AND status = 1", tenantID, websiteID).
+		Find(&widgets).Error
+	return widgets, err
+}
 
-func (menu *MenuModel) FetchWidgetList(DB *gorm.DB, tenantID string, websiteID int) (widget []TblWidgets, err error) {
-	query := DB.Table("tbl_widgets AS w").
-		Select(`w.*, wp.*, ce.*, c.*, ch.*, l.*`).
-		Joins(`INNER JOIN tbl_widget_products AS wp ON w.id = wp.widget_id`).
-		Joins(`LEFT JOIN tbl_channel_entries AS ce ON LOWER(w.widget_type) = 'entries' AND wp.product_id = ce.id`).
-		Joins(`LEFT JOIN tbl_channel_entries AS c ON LOWER(w.widget_type) = 'categories' AND wp.product_id = ANY(string_to_array(c.categories_id, ',')::INTEGER[])`).
-		Joins(`LEFT JOIN tbl_channel_entries AS ch ON LOWER(w.widget_type) = 'channels' AND wp.product_id = ch.channel_id`).
-		Joins(`LEFT JOIN tbl_listings AS l ON LOWER(w.widget_type) = 'listings' AND wp.product_id = l.id`).
-		Where("w.is_deleted = 0 AND w.tenant_id = ? AND w.website_id = ? AND w.status = 1", tenantID, websiteID).
-		Where(`(LOWER(w.widget_type) <> 'entries' OR (ce.is_deleted = 0 AND ce.status = 1 AND ce.tenant_id = ?))`, tenantID).
-		Where(`(LOWER(w.widget_type) <> 'categories' OR (c.is_deleted = 0 AND c.status = 1 AND c.tenant_id = ?))`, tenantID).
-		Where(`(LOWER(w.widget_type) <> 'channels' OR (ch.is_deleted = 0 AND ch.status = 1 AND ch.tenant_id = ?))`, tenantID).
-		Where(`(LOWER(w.widget_type) <> 'listings' OR (l.is_deleted = 0 AND l.is_active = 1 AND l.tenant_id = ?))`, tenantID)
+func (menu *MenuModel) FetchWidgetEntries(DB *gorm.DB, widgetID int) ([]channels.Tblchannelentries, error) {
+	var entries []channels.Tblchannelentries
+	err := DB.Table("tbl_widget_products AS wp").
+		Select("ce.*,c.slug_name as channel_name").
+		Joins("JOIN tbl_channel_entries AS ce ON wp.product_id = ce.id").Joins("left join tbl_channels as c on c.id =ce.channel_id").
+		Where("wp.widget_id = ?", widgetID).
+		Find(&entries).Error
+	return entries, err
+}
 
-	err = query.Find(&widget).Error
-	return
+func (menu *MenuModel) FetchWidgetListings(DB *gorm.DB, widgetID int) ([]listing.TblListing, error) {
+	var listings []listing.TblListing
+	err := DB.Debug().Table("tbl_widget_products AS wp").
+		Select("l.*, ce.slug as entry_slug").
+		Joins("JOIN tbl_listings AS l ON wp.product_id = l.id").Joins("left join tbl_channel_entries as ce on ce.id =l.entry_id").
+		Where("wp.widget_id = ?", widgetID).
+		Find(&listings).Error
+	return listings, err
 }

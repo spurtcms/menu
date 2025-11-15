@@ -234,14 +234,35 @@ func (menu *Menu) GetWidgetBySlug(slug string, tenantid string) (TblWidgets, err
 
 }
 
-func (menu *Menu) FetchWidgetList(tenantid string, websiteid int) (widget []TblWidgets, err error) {
+func (menu *Menu) FetchWidgetList(tenantID string, websiteID int) ([]TblWidgets, error) {
 
-	if AuthError := AuthandPermission(menu); AuthError != nil {
-
-		return []TblWidgets{}, AuthError
+	if authErr := AuthandPermission(menu); authErr != nil {
+		return nil, authErr
 	}
 
-	AllWidgetData, err := menumodel.FetchWidgetList(menu.DB, tenantid, websiteid)
+	widgets, err := menumodel.FetchBasicWidgetList(menu.DB, tenantID, websiteID)
+	if err != nil {
+		return nil, err
+	}
 
-	return AllWidgetData, nil
+	for i, w := range widgets {
+		switch strings.ToLower(w.WidgetType) {
+		case "entries", "categories", "channels":
+
+			entries, err := menumodel.FetchWidgetEntries(menu.DB, w.Id)
+			if err != nil {
+				return nil, err
+			}
+			widgets[i].EntriesData = entries
+
+		case "listings":
+			listings, err := menumodel.FetchWidgetListings(menu.DB, w.Id)
+			if err != nil {
+				return nil, err
+			}
+			widgets[i].ListingData = listings
+		}
+	}
+
+	return widgets, nil
 }
