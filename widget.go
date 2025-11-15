@@ -110,7 +110,7 @@ func (menu *Menu) UpdateWidget(widget *TblWidgets, widgetid int) (TblWidgets, er
 
 	widgetdetail, err := menumodel.UpdateWidget(menu.DB, widget)
 
-	derr := menumodel.DeleteProductIds(menu.DB, widgetid,widget.TenantId)
+	derr := menumodel.DeleteProductIds(menu.DB, widgetid, widget.TenantId)
 
 	if derr != nil {
 		fmt.Println(derr)
@@ -232,4 +232,16 @@ func (menu *Menu) GetWidgetBySlug(slug string, tenantid string) (TblWidgets, err
 	}
 	return widgetdetail, nil
 
+}
+
+func (menu *Menu) FetchWidgetList(tenantid string, websiteid int) (widget []TblWidgets, err error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return []TblWidgets{}, AuthError
+	}
+
+	AllWidgetData, err := menumodel.FetchWidgetList(menu.DB, tenantid, websiteid)
+
+	return AllWidgetData, nil
 }
