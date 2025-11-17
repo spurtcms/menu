@@ -27,6 +27,7 @@ type TblTemplatePages struct {
 	MetaKeywords    string    `gorm:"type:character varying"`
 	MetaSlug        string    `gorm:"type:character varying"`
 	WebsiteId       int       `gorm:"type:integer"`
+	MenuNames       string    `gorm:"-"`
 }
 
 // Create Page
@@ -142,4 +143,14 @@ func (menu *MenuModel) GetPageBySlug(DB *gorm.DB, pageslug string, tenantid stri
 
 	return page, nil
 
+}
+
+func (menu *MenuModel) GetMenusByPageId(DB *gorm.DB, pageid int, tenantid string) (menus TblMenus, err error) {
+
+	if err := DB.Table("tbl_menus").Where("is_deleted = 0 and type=? and tenant_id=? and type_id=?", "pages", tenantid, pageid).Order("id asc").Find(&menus).Error; err != nil {
+
+		return TblMenus{}, err
+	}
+
+	return menus, nil
 }

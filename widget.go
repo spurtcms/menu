@@ -246,14 +246,25 @@ func (menu *Menu) FetchWidgetList(tenantID string, websiteID int) ([]TblWidgets,
 	}
 
 	for i, w := range widgets {
+	
 		switch strings.ToLower(w.WidgetType) {
-		case "entries", "categories", "channels":
+
+		case "entries", "channels":
 
 			entries, err := menumodel.FetchWidgetEntries(menu.DB, w.Id)
 			if err != nil {
 				return nil, err
 			}
 			widgets[i].EntriesData = entries
+		case "categories":
+
+			fmt.Println("chckecategorylsit", w.WidgetType)
+
+			entries, err := menumodel.FetchWidgetByCategoriesEntries(menu.DB, w.Id)
+			if err != nil {
+				return nil, err
+			}
+			widgets[i].CategoryBaseEntryData = entries
 
 		case "listings":
 			listings, err := menumodel.FetchWidgetListings(menu.DB, w.Id)

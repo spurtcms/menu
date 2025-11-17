@@ -1,6 +1,7 @@
 package menu
 
 import (
+	"fmt"
 	"strings"
 	"time"
 )
@@ -163,4 +164,21 @@ func (menu *Menu) GetPageBySlug(slug string, tenantid string) (TblTemplatePages,
 	}
 	return pagedetail, nil
 
+}
+
+func (menu *Menu) GetMenusByPageId(pageid int, tenantid string) (TblMenus, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return TblMenus{}, AuthError
+	}
+
+	menus, err := menumodel.GetMenusByPageId(menu.DB, pageid, tenantid)
+
+	if err != nil {
+
+		fmt.Println(err)
+	}
+
+	return menus, nil
 }

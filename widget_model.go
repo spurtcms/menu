@@ -33,8 +33,9 @@ type TblWidgets struct {
 	ModifiedDate    string    `gorm:"-:migration;<-:false"`
 	ProductIds      string    `gorm:"-:migration;<-:false"`
 
-	EntriesData []channels.Tblchannelentries `gorm:"-"`
-	ListingData []listing.TblListing         `gorm:"-"`
+	EntriesData           []channels.Tblchannelentries `gorm:"-"`
+	ListingData           []listing.TblListing         `gorm:"-"`
+	CategoryBaseEntryData []channels.Tblchannelentries `gorm:"-"`
 
 	WidgetTitle string `gorm:"-:migration;<-:false"`
 	WidgetId    int    `gorm:"-:migration;<-:false"`
@@ -208,17 +209,28 @@ func (menu *MenuModel) FetchWidgetEntries(DB *gorm.DB, widgetID int) ([]channels
 	err := DB.Table("tbl_widget_products AS wp").
 		Select("ce.*,c.slug_name as channel_name").
 		Joins("JOIN tbl_channel_entries AS ce ON wp.product_id = ce.id").Joins("left join tbl_channels as c on c.id =ce.channel_id").
-		Where("wp.widget_id = ?", widgetID).
+		Where("wp.widget_id = ?", widgetID).Limit(6).
 		Find(&entries).Error
 	return entries, err
 }
+func (menu *MenuModel) FetchWidgetByCategoriesEntries(DB *gorm.DB, widgetID int) ([]channels.Tblchannelentries, error) {
+	var entries []channels.Tblchannelentries
+	err := DB.
+		Table("tbl_widget_products AS wp").
+		Select("ce.*, c.slug_name as channel_name").
+		Joins("JOIN tbl_channel_entries AS ce ON ?::text = ANY(string_to_array(ce.categories_id, ','))", gorm.Expr("CAST(wp.product_id AS text)")).
+		Joins("LEFT JOIN tbl_channels AS c ON c.id = ce.channel_id").
+		Where("wp.widget_id = ?", widgetID).Limit(6).
+		Find(&entries).Error
 
+	return entries, err
+}
 func (menu *MenuModel) FetchWidgetListings(DB *gorm.DB, widgetID int) ([]listing.TblListing, error) {
 	var listings []listing.TblListing
 	err := DB.Debug().Table("tbl_widget_products AS wp").
 		Select("l.*, ce.slug as entry_slug").
 		Joins("JOIN tbl_listings AS l ON wp.product_id = l.id").Joins("left join tbl_channel_entries as ce on ce.id =l.entry_id").
-		Where("wp.widget_id = ?", widgetID).
+		Where("wp.widget_id = ?", widgetID).Limit(6).
 		Find(&listings).Error
 	return listings, err
 }
