@@ -59,7 +59,7 @@ func (menu *MenuModel) WidgetList(limit int, offset int, filter Filter, DB *gorm
 
 	if filter.Keyword != "" {
 
-		query = query.Where("LOWER(TRIM(name)) like LOWER(TRIM(?))", "%"+filter.Keyword+"%")
+		query = query.Where("LOWER(TRIM(title)) like LOWER(TRIM(?))", "%"+filter.Keyword+"%")
 	}
 
 	if filter.ToDate != "" {
