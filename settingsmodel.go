@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -17,6 +18,7 @@ type TblGoTemplateSettings struct {
 	WebsiteUrl      string
 	TenantId        string
 	WebsiteId       int
+	TemplateType    datatypes.JSON
 }
 
 func (menu *MenuModel) SettingDetail(tenantid string, websiteid int, DB *gorm.DB) (setting TblGoTemplateSettings, err error) {
