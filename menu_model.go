@@ -72,6 +72,7 @@ type MenuCreate struct {
 	MetaDescription string
 	MetaKeywords    string
 	SeperateWindow  int
+	OrderIndex      int
 }
 type OrderItem struct {
 	MenuItemID   int  `json:"menuitem_id"`
@@ -312,5 +313,26 @@ func (menu *MenuModel) UpdateMenuItemOrder(DB *gorm.DB, menuitems []OrderItem, u
 			return err
 		}
 	}
+	return nil
+}
+
+func (menu *MenuModel) GetDirectSubMenusByParentID(parentid int, tenantid string, DB *gorm.DB) (menus []TblMenus, err error) {
+
+	if err := DB.Table("tbl_menus").Where("is_deleted=0 and parent_id=? and tenant_id=?", parentid, tenantid).Find(&menus).Error; err != nil {
+
+		return []TblMenus{}, err
+
+	}
+
+	return menus, nil
+}
+
+func (menu *MenuModel) UpdateMenuOrderIndex(menus *TblMenus, menuid int, parent_id int, DB *gorm.DB, tenantid string) error {
+
+	if err := DB.Table("tbl_menus").Where("id=? and parent_id=? and tenant_id=?", menuid, parent_id, menus.TenantId).UpdateColumns(map[string]interface{}{"order_index": menus.OrderIndex}).Error; err != nil {
+
+		return err
+	}
+
 	return nil
 }
