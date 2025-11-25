@@ -414,6 +414,21 @@ func (menu *Menu) GetMenuBySlugName(slug string, websiteid int, tenantid string)
 	return GetData, nil
 }
 
+func (menu *Menu) GetMenuByUrlPath(url string, websiteid int, tenantid string) (TblMenus, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return TblMenus{}, AuthError
+	}
+
+	GetData, err := menumodel.GetMenuByUrlPath(url, websiteid, menu.DB, tenantid)
+	if err != nil {
+		return TblMenus{}, err
+	}
+
+	return GetData, nil
+}
+
 func (menu *Menu) GetmenusByTenantId(websiteid int, tenantid string) ([]TblMenus, error) {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
