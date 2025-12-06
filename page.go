@@ -182,3 +182,19 @@ func (menu *Menu) GetMenusByPageId(pageid int, tenantid string) (TblMenus, error
 
 	return menus, nil
 }
+
+// Check Menuname is already exists
+func (menu *Menu) CheckPageNameIsExits(id int, name string, websiteid int, tenantid string) (bool, error) {
+
+	var pages TblTemplatePages
+
+	err := menumodel.CheckPageNameIsExits(pages, id, name, websiteid, menu.DB, tenantid)
+
+	if err != nil {
+
+		return false, err
+
+	}
+
+	return true, nil
+}

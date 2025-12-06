@@ -28,6 +28,8 @@ type TblTemplatePages struct {
 	MetaSlug        string    `gorm:"type:character varying"`
 	WebsiteId       int       `gorm:"type:integer"`
 	MenuNames       string    `gorm:"-"`
+	PageType        string    `gorm:"type:character varying"`
+	CustomPagePath  string    `gorm:"type:character varying"`
 }
 
 // Create Page
@@ -153,4 +155,24 @@ func (menu *MenuModel) GetMenusByPageId(DB *gorm.DB, pageid int, tenantid string
 	}
 
 	return menus, nil
+}
+
+// Check Menuname is already exists
+func (menu *MenuModel) CheckPageNameIsExits(pagererq TblTemplatePages, menuid int, name string, websiteid int, DB *gorm.DB, tenantid string) error {
+
+	if menuid == 0 {
+
+		if err := DB.Debug().Table("tbl_template_pages").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and is_deleted=0 and website_id=? and tenant_id = ? ", name, websiteid, tenantid).First(&pagererq).Error; err != nil {
+
+			return err
+		}
+	} else {
+
+		if err := DB.Table("tbl_template_pages").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0 and website_id=? and  tenant_id = ? ", name, menuid, websiteid, tenantid).First(&pagererq).Error; err != nil {
+
+			return err
+		}
+	}
+
+	return nil
 }
