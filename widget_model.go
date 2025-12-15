@@ -94,7 +94,6 @@ func (menu *MenuModel) WidgetList(limit int, offset int, filter Filter, DB *gorm
 	}
 
 	return widgets, widgetcount, nil
-
 }
 
 //create Widget
@@ -197,40 +196,85 @@ func (menu *MenuModel) DeleteProductIds(DB *gorm.DB, widgetid int, tenantid stri
 	return nil
 }
 
-func (menu *MenuModel) FetchBasicWidgetList(DB *gorm.DB, tenantID string, websiteID int) ([]TblWidgets, error) {
+func (menu *MenuModel) FetchBasicWidgetList(DB *gorm.DB, input WidgetInput) ([]TblWidgets, error) {
 	var widgets []TblWidgets
-	err := DB.Debug().Table("tbl_widgets").Where("is_deleted = 0 AND tenant_id = ? AND website_id = ? AND status = 1", tenantID, websiteID).
-		Find(&widgets).Error
+	err := DB.Table("tbl_widgets w").
+		Select(`w.*, STRING_AGG(DISTINCT wp.product_id::text, ',') AS "ProductIds"`).
+		Joins("LEFT JOIN tbl_widget_products wp ON w.id = wp.widget_id").
+		Where("w.is_deleted = 0 AND w.tenant_id = ? AND w.website_id = ? AND w.status = 1", input.TenantId, input.WebsiteId).
+		Group("w.id").
+		Order("w.created_on DESC").
+		Scan(&widgets).Error
 	return widgets, err
 }
 
-func (menu *MenuModel) FetchWidgetEntries(DB *gorm.DB, widgetID int) ([]channels.Tblchannelentries, error) {
+func (menu *MenuModel) FetchWidgetEntries(DB *gorm.DB, widgetid int, Profile bool, userroleid int) ([]channels.Tblchannelentries, error) {
 	var entries []channels.Tblchannelentries
-	err := DB.Table("tbl_widget_products AS wp").
-		Select("ce.*,c.slug_name as channel_name").
-		Joins("JOIN tbl_channel_entries AS ce ON wp.product_id = ce.id").Joins("left join tbl_channels as c on c.id =ce.channel_id").
-		Where("wp.widget_id = ? and ce.is_deleted=0", widgetID).Limit(6).
-		Find(&entries).Error
+
+	query := DB.Table("tbl_widget_products AS wp").
+		Select("ce.*, c.slug_name as channel_name").
+		Joins("JOIN tbl_channel_entries AS ce ON wp.product_id = ce.id").
+		Joins("LEFT JOIN tbl_channels AS c ON c.id = ce.channel_id").
+		Where("wp.widget_id = ? AND ce.is_deleted = 0 and ce.status=1", widgetid).
+		Limit(6)
+
+	// Apply filters AFTER base query is built
+	if !Profile {
+		query = query.Where("ce.access_type = ? OR ce.access_type IS NULL", "every_one")
+	}
+
+	if Profile {
+		query = query.Where("ce.access_type <> ?", "no_direct_access")
+	}
+
+	if userroleid != 2 {
+		query = query.Where("ce.user_role_id = ? OR ce.user_role_id = 0", 1)
+	}
+
+	err := query.Find(&entries).Error
 	return entries, err
 }
-func (menu *MenuModel) FetchWidgetByCategoriesEntries(DB *gorm.DB, widgetID int) ([]channels.Tblchannelentries, error) {
+
+func (menu *MenuModel) FetchWidgetByCategoriesEntries(DB *gorm.DB, widgetID int, Profile bool, userroleid int) ([]channels.Tblchannelentries, error) {
 	var entries []channels.Tblchannelentries
-	err := DB.
+	query := DB.
 		Table("tbl_widget_products AS wp").
 		Select("ce.*, c.slug_name as channel_name").
 		Joins("JOIN tbl_channel_entries AS ce ON ?::text = ANY(string_to_array(ce.categories_id, ','))", gorm.Expr("CAST(wp.product_id AS text)")).
 		Joins("LEFT JOIN tbl_channels AS c ON c.id = ce.channel_id").
-		Where("wp.widget_id = ? and ce.is_deleted=0", widgetID).Limit(6).
-		Find(&entries).Error
+		Where("wp.widget_id = ? and ce.is_deleted=0 and ce.status=1", widgetID).Limit(6)
 
+	if !Profile {
+		query = query.Where("ce.access_type = ? OR ce.access_type IS NULL", "every_one")
+	}
+
+	if Profile {
+		query = query.Where("ce.access_type <> ?", "no_direct_access")
+	}
+
+	if userroleid != 2 {
+		query = query.Where("ce.user_role_id = ? OR ce.user_role_id = 0", 1)
+	}
+
+	err := query.Find(&entries).Error
 	return entries, err
 }
-func (menu *MenuModel) FetchWidgetListings(DB *gorm.DB, widgetID int) ([]listing.TblListing, error) {
+func (menu *MenuModel) FetchWidgetListings(DB *gorm.DB, widgetID int, Profile bool, userroleid int) ([]listing.TblListing, error) {
 	var listings []listing.TblListing
-	err := DB.Debug().Table("tbl_widget_products AS wp").
+	query := DB.Debug().Table("tbl_widget_products AS wp").
 		Select("l.*, ce.slug as entry_slug,ce.tech_stack_logos as tech_stack_logos").
 		Joins("JOIN tbl_listings AS l ON wp.product_id = l.id").Joins("left join tbl_channel_entries as ce on ce.id =l.entry_id").
-		Where("wp.widget_id = ? and l.is_deleted=0", widgetID).Limit(6).
-		Find(&listings).Error
+		Where("wp.widget_id = ? and l.is_deleted=0", widgetID).Limit(6)
+
+	// permissions
+	if !Profile {
+		query = query.Where("ce.access_type = ? OR ce.access_type IS NULL", "every_one")
+	}
+
+	if userroleid != 2 {
+		query = query.Where("ce.user_role_id = ? OR ce.user_role_id = 0", 1)
+	}
+
+	err := query.Find(&listings).Error
 	return listings, err
 }

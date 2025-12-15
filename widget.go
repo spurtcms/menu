@@ -3,10 +3,18 @@ package menu
 import (
 	"fmt"
 	"strconv"
-
 	"strings"
 	"time"
 )
+
+type WidgetInput struct {
+	Limit     int
+	Offset    int
+	TenantId  string
+	WebsiteId int
+	Profile   bool
+	MemberId  int
+}
 
 func (menu *Menu) GetWidgetList(limit int, offset int, filter Filter, tenantid string, websiteid int) ([]TblWidgets, int, error) {
 
@@ -234,40 +242,38 @@ func (menu *Menu) GetWidgetBySlug(slug string, tenantid string) (TblWidgets, err
 
 }
 
-func (menu *Menu) FetchWidgetList(tenantID string, websiteID int) ([]TblWidgets, error) {
+func (menu *Menu) FetchWidgetList(Input WidgetInput) ([]TblWidgets, error) {
 
 	if authErr := AuthandPermission(menu); authErr != nil {
 		return nil, authErr
 	}
 
-	widgets, err := menumodel.FetchBasicWidgetList(menu.DB, tenantID, websiteID)
+	widgets, err := menumodel.FetchBasicWidgetList(menu.DB, Input)
 	if err != nil {
 		return nil, err
 	}
 
 	for i, w := range widgets {
-	
+
 		switch strings.ToLower(w.WidgetType) {
 
 		case "entries", "channels":
 
-			entries, err := menumodel.FetchWidgetEntries(menu.DB, w.Id)
+			entries, err := menumodel.FetchWidgetEntries(menu.DB, w.Id, Input.Profile, Input.MemberId)
 			if err != nil {
 				return nil, err
 			}
 			widgets[i].EntriesData = entries
 		case "categories":
 
-			fmt.Println("chckecategorylsit", w.WidgetType)
-
-			entries, err := menumodel.FetchWidgetByCategoriesEntries(menu.DB, w.Id)
+			entries, err := menumodel.FetchWidgetByCategoriesEntries(menu.DB, w.Id, Input.Profile, Input.MemberId)
 			if err != nil {
 				return nil, err
 			}
 			widgets[i].CategoryBaseEntryData = entries
 
 		case "listings":
-			listings, err := menumodel.FetchWidgetListings(menu.DB, w.Id)
+			listings, err := menumodel.FetchWidgetListings(menu.DB, w.Id, Input.Profile, Input.MemberId)
 			if err != nil {
 				return nil, err
 			}
