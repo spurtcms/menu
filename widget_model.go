@@ -39,6 +39,7 @@ type TblWidgets struct {
 
 	WidgetTitle string `gorm:"-:migration;<-:false"`
 	WidgetId    int    `gorm:"-:migration;<-:false"`
+	WidgetLimit int    `gorm:"type:integer"`
 }
 
 type TblWidgetProducts struct {
@@ -141,7 +142,7 @@ func (menu *MenuModel) GetWidgetById(DB *gorm.DB, widgetid int, tenantid string)
 // Update Widget
 func (menu *MenuModel) UpdateWidget(db *gorm.DB, widget *TblWidgets) (TblWidgets, error) {
 
-	if err := db.Table("tbl_widgets").Where("id = ? and tenant_id=?", widget.Id, widget.TenantId).UpdateColumns(map[string]interface{}{"status": widget.Status, "modified_by": widget.ModifiedBy, "modified_on": widget.ModifiedOn, "title": widget.Title, "long_title": widget.LongTitle, "position": widget.Position, "sort_order": widget.SortOrder, "meta_title": widget.MetaTitle, "meta_description": widget.MetaDescription, "meta_keywords": widget.MetaKeywords, "slug": widget.Slug, "widget_type": widget.WidgetType, "website_id": widget.WebsiteId}).Error; err != nil {
+	if err := db.Table("tbl_widgets").Where("id = ? and tenant_id=?", widget.Id, widget.TenantId).UpdateColumns(map[string]interface{}{"status": widget.Status, "modified_by": widget.ModifiedBy, "modified_on": widget.ModifiedOn, "title": widget.Title, "long_title": widget.LongTitle, "position": widget.Position, "sort_order": widget.SortOrder, "meta_title": widget.MetaTitle, "meta_description": widget.MetaDescription, "meta_keywords": widget.MetaKeywords, "slug": widget.Slug, "widget_type": widget.WidgetType, "website_id": widget.WebsiteId, "widget_limit": widget.WidgetLimit}).Error; err != nil {
 		return TblWidgets{}, err
 	}
 	return *widget, nil
@@ -203,7 +204,7 @@ func (menu *MenuModel) FetchBasicWidgetList(DB *gorm.DB, input WidgetInput) ([]T
 		Joins("LEFT JOIN tbl_widget_products wp ON w.id = wp.widget_id").
 		Where("w.is_deleted = 0 AND w.tenant_id = ? AND w.website_id = ? AND w.status = 1", input.TenantId, input.WebsiteId).
 		Group("w.id").
-		Order("w.created_on DESC").
+		Order("w.id DESC").
 		Scan(&widgets).Error
 	return widgets, err
 }
@@ -215,8 +216,12 @@ func (menu *MenuModel) FetchWidgetEntries(DB *gorm.DB, widgetid int, input Widge
 		Select("ce.*, c.slug_name as channel_name").
 		Joins("JOIN tbl_channel_entries AS ce ON wp.product_id = ce.id").
 		Joins("LEFT JOIN tbl_channels AS c ON c.id = ce.channel_id").
-		Where("wp.widget_id = ? AND ce.is_deleted = 0 and ce.status=1", widgetid).
-		Limit(input.Limit)
+		Where("wp.widget_id = ? AND ce.is_deleted = 0 and ce.status=1", widgetid)
+
+	if input.Limit > 0 {
+
+		query = query.Limit(input.Limit)
+	}
 
 	// Apply filters AFTER base query is built
 	if !input.Profile {
@@ -242,7 +247,7 @@ func (menu *MenuModel) FetchWidgetByCategoriesEntries(DB *gorm.DB, widgetID int,
 		Select("ce.*, c.slug_name as channel_name").
 		Joins("JOIN tbl_channel_entries AS ce ON ?::text = ANY(string_to_array(ce.categories_id, ','))", gorm.Expr("CAST(wp.product_id AS text)")).
 		Joins("LEFT JOIN tbl_channels AS c ON c.id = ce.channel_id").
-		Where("wp.widget_id = ? and ce.is_deleted=0 and ce.status=1", widgetID).Limit(input.Limit)
+		Where("wp.widget_id = ? and ce.is_deleted=0 and ce.status=1", widgetID)
 
 	if !input.Profile {
 		query = query.Where("ce.access_type = ? OR ce.access_type IS NULL", "every_one")
@@ -255,7 +260,10 @@ func (menu *MenuModel) FetchWidgetByCategoriesEntries(DB *gorm.DB, widgetID int,
 	if input.MemberRoleId != 2 {
 		query = query.Where("ce.user_role_id = ? OR ce.user_role_id = 0", 1)
 	}
+	if input.Limit > 0 {
 
+		query = query.Limit(input.Limit)
+	}
 	err := query.Find(&entries).Error
 	return entries, err
 }
@@ -264,7 +272,7 @@ func (menu *MenuModel) FetchWidgetListings(DB *gorm.DB, widgetID int, input Widg
 	query := DB.Debug().Table("tbl_widget_products AS wp").
 		Select("l.*, ce.slug as entry_slug,ce.tech_stack_logos as tech_stack_logos").
 		Joins("JOIN tbl_listings AS l ON wp.product_id = l.id").Joins("left join tbl_channel_entries as ce on ce.id =l.entry_id").
-		Where("wp.widget_id = ? and l.is_deleted=0", widgetID).Limit(input.Limit)
+		Where("wp.widget_id = ? and l.is_deleted=0", widgetID)
 
 	// permissions
 	if !input.Profile {
@@ -274,7 +282,10 @@ func (menu *MenuModel) FetchWidgetListings(DB *gorm.DB, widgetID int, input Widg
 	if input.MemberRoleId != 2 {
 		query = query.Where("ce.user_role_id = ? OR ce.user_role_id = 0", 1)
 	}
+	if input.Limit > 0 {
 
+		query = query.Limit(input.Limit)
+	}
 	err := query.Find(&listings).Error
 	return listings, err
 }

@@ -8,12 +8,12 @@ import (
 )
 
 type WidgetInput struct {
-	Limit     int
-	Offset    int
-	TenantId  string
-	WebsiteId int
-	Profile   bool
-	MemberRoleId  int
+	Limit        int
+	Offset       int
+	TenantId     string
+	WebsiteId    int
+	Profile      bool
+	MemberRoleId int
 }
 
 func (menu *Menu) GetWidgetList(limit int, offset int, filter Filter, tenantid string, websiteid int) ([]TblWidgets, int, error) {
@@ -254,6 +254,8 @@ func (menu *Menu) FetchWidgetList(Input WidgetInput) ([]TblWidgets, error) {
 	}
 
 	for i, w := range widgets {
+
+		Input.Limit = w.WidgetLimit
 
 		switch strings.ToLower(w.WidgetType) {
 
