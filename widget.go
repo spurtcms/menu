@@ -13,7 +13,7 @@ type WidgetInput struct {
 	TenantId  string
 	WebsiteId int
 	Profile   bool
-	MemberId  int
+	MemberRoleId  int
 }
 
 func (menu *Menu) GetWidgetList(limit int, offset int, filter Filter, tenantid string, websiteid int) ([]TblWidgets, int, error) {
@@ -259,21 +259,21 @@ func (menu *Menu) FetchWidgetList(Input WidgetInput) ([]TblWidgets, error) {
 
 		case "entries", "channels":
 
-			entries, err := menumodel.FetchWidgetEntries(menu.DB, w.Id, Input.Profile, Input.MemberId)
+			entries, err := menumodel.FetchWidgetEntries(menu.DB, w.Id, Input)
 			if err != nil {
 				return nil, err
 			}
 			widgets[i].EntriesData = entries
 		case "categories":
 
-			entries, err := menumodel.FetchWidgetByCategoriesEntries(menu.DB, w.Id, Input.Profile, Input.MemberId)
+			entries, err := menumodel.FetchWidgetByCategoriesEntries(menu.DB, w.Id, Input)
 			if err != nil {
 				return nil, err
 			}
 			widgets[i].CategoryBaseEntryData = entries
 
 		case "listings":
-			listings, err := menumodel.FetchWidgetListings(menu.DB, w.Id, Input.Profile, Input.MemberId)
+			listings, err := menumodel.FetchWidgetListings(menu.DB, w.Id, Input)
 			if err != nil {
 				return nil, err
 			}
