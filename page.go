@@ -198,3 +198,19 @@ func (menu *Menu) CheckPageNameIsExits(id int, name string, websiteid int, tenan
 
 	return true, nil
 }
+func (menu *Menu) UpdatePagesOrder(pages []OrderItem, userid int, tenantid string) error {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return AuthError
+	}
+
+	err := menumodel.UpdatePagesOrder(menu.DB, pages, userid, tenantid)
+
+	if err != nil {
+
+		return err
+	}
+
+	return nil
+}

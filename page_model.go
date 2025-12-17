@@ -30,6 +30,8 @@ type TblTemplatePages struct {
 	MenuNames       string    `gorm:"-"`
 	PageType        string    `gorm:"type:character varying"`
 	CustomPagePath  string    `gorm:"type:character varying"`
+	ParentId        int       `gorm:"type:integer"`
+	OrderIndex      int       `gorm:"type:integer"`
 }
 
 // Create Page
@@ -48,7 +50,7 @@ func (menu *MenuModel) TemplatePageList(limit int, offset int, filter Filter, DB
 
 	var pagecount int64
 
-	query := DB.Table("tbl_template_pages").Where("is_deleted = 0 and website_id=? and tenant_id = ?", websiteid, Tenantid).Order("tbl_template_pages.created_on desc")
+	query := DB.Table("tbl_template_pages").Where("is_deleted = 0 and website_id=? and tenant_id = ?", websiteid, Tenantid).Order("tbl_template_pages.order_index asc")
 
 	if filter.Keyword != "" {
 
@@ -174,5 +176,18 @@ func (menu *MenuModel) CheckPageNameIsExits(pagererq TblTemplatePages, menuid in
 		}
 	}
 
+	return nil
+}
+
+func (menu *MenuModel) UpdatePagesOrder(DB *gorm.DB, pages []OrderItem, userid int, tenantid string) error {
+	ModifiedOn, _ := time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+	for _, item := range pages {
+
+		if err := DB.Debug().Table("tbl_template_pages").Where("id=? and tenant_id=? and is_deleted=0", item.MenuItemID, tenantid).UpdateColumns(map[string]interface{}{"order_index": item.OrderIndex, "parent_id": item.ParentMenuID, "modified_by": userid, "modified_on": ModifiedOn}).Error; err != nil {
+
+			return err
+		}
+	}
 	return nil
 }
