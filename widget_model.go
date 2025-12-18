@@ -223,13 +223,15 @@ func (menu *MenuModel) FetchWidgetEntries(DB *gorm.DB, widgetid int, input Widge
 		query = query.Limit(input.Limit)
 	}
 
-	// Apply filters AFTER base query is built
-	if !input.Profile {
-		query = query.Where("ce.access_type = ? OR ce.access_type IS NULL", "every_one")
+	if input.NoDirectAccess {
+
+		query = query.Debug().Where("ce.access_type <> ?", "no_direct_access")
+
 	}
 
-	if input.Profile {
-		query = query.Where("ce.access_type <> ?", "no_direct_access")
+	if !input.Profile {
+
+		query = query.Where("ce.access_type = ? OR ce.access_type IS NULL", "every_one")
 	}
 
 	if input.MemberRoleId != 2 {
@@ -249,12 +251,15 @@ func (menu *MenuModel) FetchWidgetByCategoriesEntries(DB *gorm.DB, widgetID int,
 		Joins("LEFT JOIN tbl_channels AS c ON c.id = ce.channel_id").
 		Where("wp.widget_id = ? and ce.is_deleted=0 and ce.status=1", widgetID)
 
-	if !input.Profile {
-		query = query.Where("ce.access_type = ? OR ce.access_type IS NULL", "every_one")
+	if input.NoDirectAccess {
+
+		query = query.Debug().Where("ce.access_type <> ?", "no_direct_access")
+
 	}
 
-	if input.Profile {
-		query = query.Where("ce.access_type <> ?", "no_direct_access")
+	if !input.Profile {
+
+		query = query.Where("ce.access_type = ? OR ce.access_type IS NULL", "every_one")
 	}
 
 	if input.MemberRoleId != 2 {
@@ -275,13 +280,13 @@ func (menu *MenuModel) FetchWidgetListings(DB *gorm.DB, widgetID int, input Widg
 		Where("wp.widget_id = ? and l.is_deleted=0 and l.status=1", widgetID)
 
 	// permissions
-	if !input.Profile {
-		query = query.Where("ce.access_type = ? OR ce.access_type IS NULL", "every_one")
-	}
+	// if !input.Profile {
+	// 	query = query.Where("ce.access_type = ? OR ce.access_type IS NULL", "every_one")
+	// }
 
-	if input.MemberRoleId != 2 {
-		query = query.Where("ce.user_role_id = ? OR ce.user_role_id = 0", 1)
-	}
+	// if input.MemberRoleId != 2 {
+	// 	query = query.Where("ce.user_role_id = ? OR ce.user_role_id = 0", 1)
+	// }
 	if input.Limit > 0 {
 
 		query = query.Limit(input.Limit)
