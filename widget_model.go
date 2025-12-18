@@ -272,7 +272,7 @@ func (menu *MenuModel) FetchWidgetListings(DB *gorm.DB, widgetID int, input Widg
 	query := DB.Debug().Table("tbl_widget_products AS wp").
 		Select("l.*, ce.slug as entry_slug,ce.tech_stack_logos as tech_stack_logos").
 		Joins("JOIN tbl_listings AS l ON wp.product_id = l.id").Joins("left join tbl_channel_entries as ce on ce.id =l.entry_id").
-		Where("wp.widget_id = ? and l.is_deleted=0", widgetID)
+		Where("wp.widget_id = ? and l.is_deleted=0 and l.status=1", widgetID)
 
 	// permissions
 	if !input.Profile {
