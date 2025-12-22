@@ -95,7 +95,16 @@ func (menu *Menu) DeletePage(pageid int, modifiedby int, tenantid string) error 
 
 		return AuthError
 	}
+	GetData, _ := menumodel.GetPageTree(pageid, menu.DB, tenantid)
 
+	var individualid []int
+
+	for _, GetParent := range GetData {
+
+		indivi := GetParent.Id
+
+		individualid = append(individualid, indivi)
+	}
 	var pagedet TblTemplatePages
 
 	pagedet.DeletedBy = modifiedby
@@ -106,7 +115,7 @@ func (menu *Menu) DeletePage(pageid int, modifiedby int, tenantid string) error 
 
 	pagedet.Id = pageid
 
-	err := menumodel.DeletePageById(&pagedet, tenantid, menu.DB)
+	err := menumodel.DeletePageById(&pagedet,individualid, tenantid, menu.DB)
 
 	if err != nil {
 

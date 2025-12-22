@@ -126,14 +126,19 @@ func (menu *MenuModel) PageStatusChange(page TblTemplatePages, DB *gorm.DB) erro
 }
 
 // DeletePageById
-func (menu *MenuModel) DeletePageById(page *TblTemplatePages, tenantid string, DB *gorm.DB) error {
+func (menu *MenuModel) DeletePageById(page *TblTemplatePages, individualid []int, tenantid string, DB *gorm.DB) error {
 
-	if err := DB.Debug().Table("tbl_template_pages").Where("id=? and  tenant_id = ?", page.Id, tenantid).Updates(TblTemplatePages{IsDeleted: page.IsDeleted, DeletedOn: page.DeletedOn, DeletedBy: page.DeletedBy}).Error; err != nil {
+	// if err := DB.Debug().Table("tbl_template_pages").Where("id=? and  tenant_id = ?", page.Id, tenantid).Updates(TblTemplatePages{IsDeleted: page.IsDeleted, DeletedOn: page.DeletedOn, DeletedBy: page.DeletedBy}).Error; err != nil {
+
+	// 	return err
+
+	// }
+
+	if err := DB.Table("tbl_template_pages").Where("id in(?) and  tenant_id = ?", individualid, tenantid).Updates(TblTemplatePages{IsDeleted: page.IsDeleted, DeletedOn: page.DeletedOn, DeletedBy: page.DeletedBy}).Error; err != nil {
 
 		return err
 
 	}
-
 	return nil
 }
 
@@ -190,4 +195,36 @@ func (menu *MenuModel) UpdatePagesOrder(DB *gorm.DB, pages []OrderItem, userid i
 		}
 	}
 	return nil
+}
+
+func (menu *MenuModel) GetPageTree(pageid int, DB *gorm.DB, tenantid string) ([]TblTemplatePages, error) {
+	var pages []TblTemplatePages
+	err := DB.Debug().Raw(`
+		WITH RECURSIVE cat_tree AS (
+			SELECT id, 	name,
+			slug,
+			parent_id,
+			created_on,
+			modified_on,
+			is_deleted
+			FROM tbl_template_pages
+			WHERE id = ? and  tenant_id =?
+			UNION ALL
+			SELECT cat.id, cat.name,
+			cat.slug,
+			cat.parent_id,
+			cat.created_on,
+			cat.modified_on,
+			cat.is_deleted
+			FROM tbl_template_pages AS cat
+			JOIN cat_tree ON cat.parent_id = cat_tree.id and  cat.tenant_id =?
+		)
+		SELECT *
+		FROM cat_tree WHERE IS_DELETED = 0 order by id desc
+	`, pageid, tenantid, tenantid).Scan(&pages).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return pages, nil
 }
