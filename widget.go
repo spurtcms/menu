@@ -283,6 +283,14 @@ func (menu *Menu) FetchWidgetList(Input WidgetInput) ([]TblWidgets, error) {
 				return nil, err
 			}
 			widgets[i].ListingData = listings
+
+		case "pages":
+			pages, err := menumodel.FetchWidgetPages(menu.DB, w.Id, Input)
+			if err != nil {
+				return nil, err
+			}
+			widgets[i].PageData = pages
+
 		}
 	}
 

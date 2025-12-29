@@ -37,9 +37,10 @@ type TblWidgets struct {
 	ListingData           []listing.TblListing         `gorm:"-"`
 	CategoryBaseEntryData []channels.Tblchannelentries `gorm:"-"`
 
-	WidgetTitle string `gorm:"-:migration;<-:false"`
-	WidgetId    int    `gorm:"-:migration;<-:false"`
-	WidgetLimit int    `gorm:"type:integer"`
+	WidgetTitle string             `gorm:"-:migration;<-:false"`
+	WidgetId    int                `gorm:"-:migration;<-:false"`
+	WidgetLimit int                `gorm:"type:integer"`
+	PageData    []TblTemplatePages `gorm:"-"`
 }
 
 type TblWidgetProducts struct {
@@ -293,4 +294,21 @@ func (menu *MenuModel) FetchWidgetListings(DB *gorm.DB, widgetID int, input Widg
 	}
 	err := query.Find(&listings).Error
 	return listings, err
+}
+func (menu1 *MenuModel) FetchWidgetPages(DB *gorm.DB, widgetID int, input WidgetInput) ([]TblTemplatePages, error) {
+	var pages []TblTemplatePages
+
+	query := DB.
+		Table("tbl_template_pages AS tp").
+		Select("tp.*").
+		Joins("JOIN tbl_widget_products AS wp ON wp.product_id = tp.id").
+		Where("wp.widget_id = ? AND tp.is_deleted = 0", widgetID)
+
+	if input.Limit > 0 {
+
+		query = query.Limit(input.Limit)
+	}
+	err := query.Find(&pages).Error
+	return pages, err
+
 }

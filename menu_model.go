@@ -11,6 +11,7 @@ type Filter struct {
 	Keyword string
 	Status  string
 	ToDate  string
+	PageId  int
 }
 
 type TblMenus struct {
