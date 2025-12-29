@@ -73,6 +73,10 @@ func (menu *MenuModel) TemplatePageList(limit int, offset int, filter Filter, DB
 			query = query.Where("tbl_template_pages.status=?", 0)
 		}
 	}
+
+	if filter.PageId != 0 {
+		query = query.Where("parent_id=?", filter.PageId)
+	}
 	if limit != 0 {
 
 		query.Limit(limit).Offset(offset).Find(&pages)
