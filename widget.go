@@ -262,7 +262,7 @@ func (menu *Menu) FetchWidgetList(Input WidgetInput) ([]TblWidgets, error) {
 
 		switch strings.ToLower(w.WidgetType) {
 
-		case "entries", "channels":
+		case "entries":
 
 			entries, err := menumodel.FetchWidgetEntries(menu.DB, w.Id, Input)
 			if err != nil {
@@ -290,6 +290,12 @@ func (menu *Menu) FetchWidgetList(Input WidgetInput) ([]TblWidgets, error) {
 				return nil, err
 			}
 			widgets[i].PageData = pages
+		case "channels":
+			chennalsEntries, err := menumodel.FetchWidgetchennals(menu.DB, w.Id, Input)
+			if err != nil {
+				return nil, err
+			}
+			widgets[i].ChennalsEntries = chennalsEntries
 
 		}
 	}

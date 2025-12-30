@@ -37,10 +37,11 @@ type TblWidgets struct {
 	ListingData           []listing.TblListing         `gorm:"-"`
 	CategoryBaseEntryData []channels.Tblchannelentries `gorm:"-"`
 
-	WidgetTitle string             `gorm:"-:migration;<-:false"`
-	WidgetId    int                `gorm:"-:migration;<-:false"`
-	WidgetLimit int                `gorm:"type:integer"`
-	PageData    []TblTemplatePages `gorm:"-"`
+	WidgetTitle     string                       `gorm:"-:migration;<-:false"`
+	WidgetId        int                          `gorm:"-:migration;<-:false"`
+	WidgetLimit     int                          `gorm:"type:integer"`
+	PageData        []TblTemplatePages           `gorm:"-"`
+	ChennalsEntries []channels.Tblchannelentries `gorm:"-"`
 }
 
 type TblWidgetProducts struct {
@@ -311,4 +312,45 @@ func (menu1 *MenuModel) FetchWidgetPages(DB *gorm.DB, widgetID int, input Widget
 	err := query.Find(&pages).Error
 	return pages, err
 
+}
+func (menu1 *MenuModel) FetchWidgetchennals(DB *gorm.DB, widgetID int, input WidgetInput) ([]channels.Tblchannelentries, error) {
+
+	var channels_entries []channels.Tblchannelentries
+
+	query := DB.Debug().
+		Table("tbl_channel_entries AS ce").
+		Select(`
+        ce.*,
+        c.slug_name AS channel_name
+    `).
+		Joins("JOIN tbl_widget_products AS wp ON wp.product_id = ce.channel_id").
+		Joins("LEFT JOIN tbl_channels AS c ON c.id = ce.channel_id").
+		Where(`
+			wp.widget_id = ? 
+			AND ce.is_deleted = 0 
+			AND ce.is_active = 1
+ 
+		`, widgetID)
+
+	if input.Limit > 0 {
+		query = query.Limit(input.Limit)
+	}
+
+	if input.NoDirectAccess {
+
+		query = query.Debug().Where("ce.access_type <> ?", "no_direct_access")
+
+	}
+
+	if !input.Profile {
+
+		query = query.Where("ce.access_type = ? OR ce.access_type IS NULL", "every_one")
+	}
+
+	if input.MemberRoleId != 2 {
+		query = query.Where("ce.user_role_id = ? OR ce.user_role_id = 0", 1)
+	}
+
+	err := query.Find(&channels_entries).Error
+	return channels_entries, err
 }
