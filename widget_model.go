@@ -41,7 +41,7 @@ type TblWidgets struct {
 	WidgetId        int                   `gorm:"-:migration;<-:false"`
 	WidgetLimit     int                   `gorm:"type:integer"`
 	PageData        []TblTemplatePages    `gorm:"-"`
-	ChennalsEntries []channels.TblChannel `gorm:"-"`
+	ChennalsEntries []channels.Tblchannel `gorm:"-"`
 }
 
 type TblWidgetProducts struct {
@@ -314,21 +314,27 @@ func (menu1 *MenuModel) FetchWidgetPages(DB *gorm.DB, widgetID int, input Widget
 
 }
 
-func (menu1 *MenuModel) FetchWidgetchennals(DB *gorm.DB, widgetID int, input WidgetInput) ([]channels.TblChannel, error) {
-
-	var channels_entries []channels.TblChannel
-
-	query := DB.Debug().
-		Table("tbl_channels AS ce").
-		Select("ce.*").
-		Joins("JOIN tbl_widget_products AS wp ON wp.product_id = ce.id").
-		Where("wp.widget_id = ? AND ce.is_deleted = 0 AND ce.is_active = 1", widgetID)
-
-	if input.Limit > 0 {
-		query = query.Limit(input.Limit)
-	}
-
-	err := query.Find(&channels_entries).Error
-
-	return channels_entries, err
+func (menu1 *MenuModel) FetchWidgetchennals(DB *gorm.DB, widgetID int, input WidgetInput) ([]channels.Tblchannel, error) {
+ 
+    var channels_entries []channels.Tblchannel
+ 
+    query := DB.Debug().
+        Table("tbl_channels AS ce").
+        Select("ce.*,w.title AS widget_title").
+        Joins("JOIN tbl_widget_products AS wp ON wp.product_id = ce.id").
+        Joins("JOIN tbl_widgets AS w ON w.id = wp.widget_id").
+        Where("wp.widget_id = ? AND ce.is_deleted = 0 ", widgetID).
+        Preload("ChannelEntries", func(db *gorm.DB) *gorm.DB {
+            return db.
+                Where("is_deleted = 0 AND is_active = 1").
+                Order("created_on DESC").Limit(5)
+        })
+ 
+    if input.Limit > 0 {
+        query = query.Limit(input.Limit)
+    }
+ 
+    err := query.Find(&channels_entries).Error
+ 
+    return channels_entries, err
 }
