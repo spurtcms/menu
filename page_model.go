@@ -1,37 +1,39 @@
 package menu
 
 import (
+	"html/template"
 	"time"
 
 	"gorm.io/gorm"
 )
 
 type TblTemplatePages struct {
-	Id              int       `gorm:"primaryKey;auto_increment;type:serial"`
-	Name            string    `gorm:"type:character varying"`
-	Slug            string    `gorm:"type:character varying"`
-	PageDescription string    `gorm:"type:character varying"`
-	TenantId        string    `gorm:"type:character varying"`
-	IsDeleted       int       `gorm:"type:integer"`
-	DeletedOn       time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
-	DeletedBy       int       `gorm:"DEFAULT:NULL"`
-	CreatedOn       time.Time `gorm:"type:timestamp without time zone"`
-	CreatedBy       int       `gorm:"DEFAULT:NULL"`
-	ModifiedOn      time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
-	ModifiedBy      int       `gorm:"DEFAULT:NULL"`
-	CreatedDate     string    `gorm:"-:migration;<-:false"`
-	ModifiedDate    string    `gorm:"-:migration;<-:false"`
-	Status          int       `gorm:"type:integer"`
-	MetaTitle       string    `gorm:"type:character varying"`
-	MetaDescription string    `gorm:"type:character varying"`
-	MetaKeywords    string    `gorm:"type:character varying"`
-	MetaSlug        string    `gorm:"type:character varying"`
-	WebsiteId       int       `gorm:"type:integer"`
-	MenuNames       string    `gorm:"-"`
-	PageType        string    `gorm:"type:character varying"`
-	CustomPagePath  string    `gorm:"type:character varying"`
-	ParentId        int       `gorm:"type:integer"`
-	OrderIndex      int       `gorm:"type:integer"`
+	Id              int           `gorm:"primaryKey;auto_increment;type:serial"`
+	Name            string        `gorm:"type:character varying"`
+	Slug            string        `gorm:"type:character varying"`
+	PageDescription string        `gorm:"type:character varying"`
+	TenantId        string        `gorm:"type:character varying"`
+	IsDeleted       int           `gorm:"type:integer"`
+	DeletedOn       time.Time     `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
+	DeletedBy       int           `gorm:"DEFAULT:NULL"`
+	CreatedOn       time.Time     `gorm:"type:timestamp without time zone"`
+	CreatedBy       int           `gorm:"DEFAULT:NULL"`
+	ModifiedOn      time.Time     `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
+	ModifiedBy      int           `gorm:"DEFAULT:NULL"`
+	CreatedDate     string        `gorm:"-:migration;<-:false"`
+	ModifiedDate    string        `gorm:"-:migration;<-:false"`
+	Status          int           `gorm:"type:integer"`
+	MetaTitle       string        `gorm:"type:character varying"`
+	MetaDescription string        `gorm:"type:character varying"`
+	MetaKeywords    string        `gorm:"type:character varying"`
+	MetaSlug        string        `gorm:"type:character varying"`
+	WebsiteId       int           `gorm:"type:integer"`
+	MenuNames       string        `gorm:"-"`
+	PageType        string        `gorm:"type:character varying"`
+	CustomPagePath  string        `gorm:"type:character varying"`
+	ParentId        int           `gorm:"type:integer"`
+	OrderIndex      int           `gorm:"type:integer"`
+	HtmlDescription template.HTML `gorm:"-"`
 }
 
 // Create Page

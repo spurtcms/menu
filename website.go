@@ -145,3 +145,18 @@ func (menu *Menu) CheckSiteName(sitename string, webid int) error {
 
 	return nil
 }
+func (menu *Menu) GetMenusByParentId(parentid int) ([]TblMenus, error) {
+ 
+    
+    GetData, _ := menumodel.GetMenuByParentId(parentid, menu.DB)
+ 
+    return GetData, nil
+}
+ 
+func (menu *Menu) GetmenyByIdForWebsite(menuid int) (TblMenus, error) {
+ 
+ 
+    GetData, _ := menumodel.GetMenuByIdForWebsite(menuid, menu.DB)
+ 
+    return GetData, nil
+}

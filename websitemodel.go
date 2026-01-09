@@ -140,3 +140,28 @@ func (menu *MenuModel) DeleteWebsiteById(website *TblWebsite, DB *gorm.DB) error
 
 	return nil
 }
+func (menu *MenuModel) GetMenuByParentId(menuid int, DB *gorm.DB) ([]TblMenus, error) {
+	var menus []TblMenus
+
+	err := DB.Table("tbl_menus").
+		Where("parent_id = ? AND is_deleted = 0", menuid).
+		Order("order_index ASC").
+		Find(&menus).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return menus, nil
+}
+
+func (menu *MenuModel) GetMenuByIdForWebsite(menuid int, DB *gorm.DB) (TblMenus, error) {
+
+	var menudet TblMenus
+
+	if err := DB.Table("tbl_menus").Where("id=? and is_deleted=0", menuid).First(&menudet).Error; err != nil {
+
+		return TblMenus{}, err
+	}
+	return menudet, nil
+}
