@@ -115,7 +115,7 @@ func (menu *Menu) DeletePage(pageid int, modifiedby int, tenantid string) error 
 
 	pagedet.Id = pageid
 
-	err := menumodel.DeletePageById(&pagedet,individualid, tenantid, menu.DB)
+	err := menumodel.DeletePageById(&pagedet, individualid, tenantid, menu.DB)
 
 	if err != nil {
 
@@ -221,4 +221,30 @@ func (menu *Menu) UpdatePagesOrder(pages []OrderItem, userid int, tenantid strin
 	}
 
 	return nil
+}
+
+//clone page count update//
+
+func (menu *Menu) CloneCountUpdate(pages TblTemplatePages) error {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return AuthError
+	}
+
+	var pageinfo TblTemplatePages
+
+	pageinfo.Id = pages.Id
+
+	pageinfo.CloneCount = pages.CloneCount
+
+	err := menumodel.CloneCountUpdate(pageinfo, menu.DB)
+
+	if err != nil {
+
+		return err
+	}
+
+	return nil
+
 }

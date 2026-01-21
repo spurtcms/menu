@@ -34,6 +34,7 @@ type TblTemplatePages struct {
 	ParentId        int           `gorm:"type:integer"`
 	OrderIndex      int           `gorm:"type:integer"`
 	HtmlDescription template.HTML `gorm:"-"`
+	CloneCount      int           `gorm:"type:integer"`
 }
 
 // Create Page
@@ -233,4 +234,15 @@ func (menu *MenuModel) GetPageTree(pageid int, DB *gorm.DB, tenantid string) ([]
 	}
 
 	return pages, nil
+}
+
+func (menu *MenuModel) CloneCountUpdate(pageinfo TblTemplatePages, DB *gorm.DB) (Error error) {
+
+	if err := DB.Table("tbl_template_pages").Where("id=?", pageinfo.Id).Updates(map[string]interface{}{"clone_count": pageinfo.CloneCount}).Error; err != nil {
+
+		return err
+
+	}
+
+	return nil
 }
