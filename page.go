@@ -248,3 +248,34 @@ func (menu *Menu) CloneCountUpdate(pages TblTemplatePages) error {
 	return nil
 
 }
+
+//UpdatePage OrderIndex fucntion//
+
+func (menu *Menu) UpdatePageOrderIndex(Orderindex int, pageid, userid int, tenantid string) (bool, error) {
+
+	autherr := AuthandPermission(menu)
+
+	if autherr != nil {
+
+		return false, autherr
+	}
+
+	var pageinfo TblTemplatePages
+
+	pageinfo.Id = pageid
+
+	pageinfo.OrderIndex = Orderindex
+
+	pageinfo.TenantId = tenantid
+
+	pageinfo.ModifiedBy = userid
+
+	err := menumodel.UpdatePageOrderIndex(&pageinfo, menu.DB)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	return true, nil
+}

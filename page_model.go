@@ -246,3 +246,16 @@ func (menu *MenuModel) CloneCountUpdate(pageinfo TblTemplatePages, DB *gorm.DB) 
 
 	return nil
 }
+
+//update Page OrderIndex query//
+
+func (menu *MenuModel) UpdatePageOrderIndex(pageinfo *TblTemplatePages, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_template_pages").Where("id=? and tenant_id=?", pageinfo.Id, pageinfo.TenantId).UpdateColumns(map[string]interface{}{"order_index": pageinfo.OrderIndex}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+
+}
