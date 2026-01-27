@@ -6,6 +6,7 @@ import (
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+    "encoding/json"
 )
 
 type TblGoTemplateSettings struct {
@@ -19,7 +20,18 @@ type TblGoTemplateSettings struct {
 	TenantId        string
 	WebsiteId       int
 	TemplateType    datatypes.JSON
+    SocialMediaLink datatypes.JSON
+	SocialLinks     []SocialLink `gorm:"-"`
 }
+
+type SocialLink struct {
+	Instalink    string `json:"Instalink"`
+	XSociallink  string `json:"XSociallink"`
+	Youtubelink  string `json:"Youtubelink"`
+	FaceBooklink string `json:"FaceBooklink"`
+	Linkedinlink string `json:"Linkedinlink"`
+}
+
 
 func (menu *MenuModel) SettingDetail(tenantid string, websiteid int, DB *gorm.DB) (setting TblGoTemplateSettings, err error) {
 
@@ -29,6 +41,10 @@ func (menu *MenuModel) SettingDetail(tenantid string, websiteid int, DB *gorm.DB
 
 		return TblGoTemplateSettings{}, err
 	}
+
+    if len(SettingsDetail.SocialMediaLink) > 0 {
+		_ =json.Unmarshal(SettingsDetail.SocialMediaLink, &SettingsDetail.SocialLinks)
+	 }
 
 	return SettingsDetail, nil
 }
@@ -114,7 +130,17 @@ func (menu *MenuModel) SettingsUpdates(settingsdetails TblGoTemplateSettings, DB
  
                 return err
             }
-        }
+        }else if string(settingsdetails.SocialMediaLink) != "" && string(settingsdetails.SocialMediaLink) != "null" && string(settingsdetails.SocialMediaLink) != "[]" {
+
+ 
+			if err := DB.Table("tbl_go_template_settings").Debug().
+				Where("tenant_id = ? AND website_id = ?", settingsdetails.TenantId, settingsdetails.WebsiteId).
+				Update("social_media_link", settingsdetails.SocialMediaLink).Error; err != nil {
+ 
+				return err
+			}
+ 
+		}
  
         return nil
  

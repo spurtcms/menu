@@ -39,9 +39,10 @@ func (menu *Menu) SettingUpdate(settingsdetails TblGoTemplateSettings) error {
         TenantId:        settingsdetails.TenantId,
         WebsiteId:       settingsdetails.WebsiteId,
         TemplateType:    settingsdetails.TemplateType,
+        SocialMediaLink: settingsdetails.SocialMediaLink,
     }
  
-    fmt.Println("hello::", Settings)
+    fmt.Println("")
  
     err := menumodel.SettingsUpdates(Settings, menu.DB)
  
