@@ -276,7 +276,7 @@ func (menu *MenuModel) FetchWidgetByCategoriesEntries(DB *gorm.DB, widgetID int,
 }
 func (menu *MenuModel) FetchWidgetListings(DB *gorm.DB, widgetID int, input WidgetInput) ([]listing.TblListing, error) {
 	var listings []listing.TblListing
-	query := DB.Debug().Table("tbl_widget_products AS wp").
+	query := DB.Table("tbl_widget_products AS wp").
 		Select("l.*, ce.slug as entry_slug,ce.tech_stack_logos as tech_stack_logos").
 		Joins("JOIN tbl_listings AS l ON wp.product_id = l.id").Joins("left join tbl_channel_entries as ce on ce.id =l.entry_id").
 		Where("wp.widget_id = ? and l.is_deleted=0 and l.status=1 and ce.status=1", widgetID)
@@ -315,26 +315,26 @@ func (menu1 *MenuModel) FetchWidgetPages(DB *gorm.DB, widgetID int, input Widget
 }
 
 func (menu1 *MenuModel) FetchWidgetchennals(DB *gorm.DB, widgetID int, input WidgetInput) ([]channels.Tblchannel, error) {
- 
-    var channels_entries []channels.Tblchannel
- 
-    query := DB.Debug().
-        Table("tbl_channels AS ce").
-        Select("ce.*,w.title AS widget_title").
-        Joins("JOIN tbl_widget_products AS wp ON wp.product_id = ce.id").
-        Joins("JOIN tbl_widgets AS w ON w.id = wp.widget_id").
-        Where("wp.widget_id = ? AND ce.is_deleted = 0 ", widgetID).
-        Preload("ChannelEntries", func(db *gorm.DB) *gorm.DB {
-            return db.
-                Where("is_deleted = 0 AND is_active = 1").
-                Order("created_on DESC").Limit(5)
-        })
- 
-    if input.Limit > 0 {
-        query = query.Limit(input.Limit)
-    }
- 
-    err := query.Find(&channels_entries).Error
- 
-    return channels_entries, err
+
+	var channels_entries []channels.Tblchannel
+
+	query := DB.
+		Table("tbl_channels AS ce").
+		Select("ce.*,w.title AS widget_title").
+		Joins("JOIN tbl_widget_products AS wp ON wp.product_id = ce.id").
+		Joins("JOIN tbl_widgets AS w ON w.id = wp.widget_id").
+		Where("wp.widget_id = ? AND ce.is_deleted = 0 ", widgetID).
+		Preload("ChannelEntries", func(db *gorm.DB) *gorm.DB {
+			return db.
+				Where("is_deleted = 0 AND is_active = 1").
+				Order("created_on DESC").Limit(5)
+		})
+
+	if input.Limit > 0 {
+		query = query.Limit(input.Limit)
+	}
+
+	err := query.Find(&channels_entries).Error
+
+	return channels_entries, err
 }

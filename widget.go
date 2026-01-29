@@ -5,16 +5,20 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/spurtcms/channels"
 )
 
 type WidgetInput struct {
-	Limit          int
-	Offset         int
-	TenantId       string
-	WebsiteId      int
-	Profile        bool
-	MemberRoleId   int
-	NoDirectAccess bool
+	Limit               int
+	Offset              int
+	TenantId            string
+	WebsiteId           int
+	Profile             bool
+	MemberRoleId        int
+	NoDirectAccess      bool
+	GetAdditionalFields bool
+	SectionFieldTypeId  int
 }
 
 func (menu *Menu) GetWidgetList(limit int, offset int, filter Filter, tenantid string, websiteid int) ([]TblWidgets, int, error) {
@@ -268,6 +272,41 @@ func (menu *Menu) FetchWidgetList(Input WidgetInput) ([]TblWidgets, error) {
 			if err != nil {
 				return nil, err
 			}
+
+			for _, val := range entries {
+				var sections, fields []channels.Tblfield
+
+				if Input.GetAdditionalFields {
+
+					additionalFields, _ := channels.EntryModel.GetChannelAdditionalFields(menu.DB, val.ChannelId)
+
+					for _, field := range additionalFields {
+
+						if field.FieldTypeId != Input.SectionFieldTypeId {
+
+							if field.OptionExist == 1 {
+
+								field.FieldOptions, _ = channels.EntryModel.GetFieldOptions(menu.DB, field.Id, val.TenantId)
+							}
+
+							field.FieldValue, _ = channels.EntryModel.GetFieldValue(menu.DB, field.Id, val.Id, val.TenantId)
+
+							fields = append(fields, field)
+
+						} else {
+
+							sections = append(sections, field)
+						}
+
+						val.Sections = sections
+						val.Fields = fields
+
+						entries = append(entries, val)
+					}
+
+				}
+			}
+
 			widgets[i].EntriesData = entries
 		case "categories":
 
