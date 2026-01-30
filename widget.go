@@ -273,6 +273,8 @@ func (menu *Menu) FetchWidgetList(Input WidgetInput) ([]TblWidgets, error) {
 				return nil, err
 			}
 
+			var newentry []channels.Tblchannelentries
+
 			for _, val := range entries {
 				var sections, fields []channels.Tblfield
 
@@ -298,16 +300,17 @@ func (menu *Menu) FetchWidgetList(Input WidgetInput) ([]TblWidgets, error) {
 							sections = append(sections, field)
 						}
 
-						val.Sections = sections
-						val.Fields = fields
-
-						entries = append(entries, val)
 					}
 
 				}
+				val.Sections = sections
+				val.Fields = fields
+
+				newentry = append(newentry, val)
+
 			}
 
-			widgets[i].EntriesData = entries
+			widgets[i].EntriesData = newentry
 		case "categories":
 
 			entries, err := menumodel.FetchWidgetByCategoriesEntries(menu.DB, w.Id, Input)
