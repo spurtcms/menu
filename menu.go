@@ -68,6 +68,8 @@ func (menu *Menu) CreateMenus(req MenuCreate) (TblMenus, error) {
 
 	menus.Name = req.MenuName
 
+	menus.MenuTitle = req.MenuTitle
+
 	menusSlug = strings.ToLower(strings.ReplaceAll(req.MenuName, " ", "-"))
 
 	menusSlug = regexp.MustCompile(`[^a-zA-Z0-9]+`).ReplaceAllString(menusSlug, "-")
@@ -149,6 +151,8 @@ func (menu *Menu) UpdateMenu(req MenuCreate) (TblMenus, error) {
 	menudet.Id = req.Id
 
 	menudet.Name = req.MenuName
+
+	menudet.MenuTitle = req.MenuTitle
 
 	menudet.Description = req.Description
 

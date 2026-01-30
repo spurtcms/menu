@@ -17,6 +17,7 @@ type Filter struct {
 type TblMenus struct {
 	Id              int
 	Name            string
+	MenuTitle       string
 	Description     string
 	TenantId        string
 	CreatedOn       time.Time
@@ -56,6 +57,7 @@ type MenuModel struct {
 type MenuCreate struct {
 	Id              int
 	MenuName        string
+	MenuTitle       string
 	MenuSlug        string
 	Description     string
 	ParentId        int
@@ -145,7 +147,7 @@ func (menu *MenuModel) UpdateMenu(menureq *TblMenus, DB *gorm.DB) (TblMenus, err
 
 	if menureq.ParentId == 0 {
 
-		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "slug_name": menureq.SlugName, "status": menureq.Status, "description": menureq.Description, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "website_id": menureq.WebsiteId, "separate_window": menureq.SeparateWindow}).Error; err != nil {
+		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name,"menu_title":menureq.MenuTitle, "slug_name": menureq.SlugName, "status": menureq.Status, "description": menureq.Description, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "website_id": menureq.WebsiteId, "separate_window": menureq.SeparateWindow}).Error; err != nil {
 
 			return TblMenus{}, err
 		}
