@@ -1,6 +1,7 @@
 package menu
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -19,38 +20,43 @@ func (menu *Menu) SettingsDetail(tenantid string, websiteid int) (setting TblGoT
 
 	}
 
+	if len(settingsdetail.SocialMediaLink) > 0 {
+		_ = json.Unmarshal(settingsdetail.SocialMediaLink, &settingsdetail.SocialLinks)
+	}
+
 	return settingsdetail, nil
 }
 
 func (menu *Menu) SettingUpdate(settingsdetails TblGoTemplateSettings) error {
- 
-    if AuthError := AuthandPermission(menu); AuthError != nil {
- 
-        return AuthError
-    }
- 
-    Settings := TblGoTemplateSettings{
-        SiteName:        settingsdetails.SiteName,
-        SiteLogo:        settingsdetails.SiteLogo,
-        SiteLogoPath:    settingsdetails.SiteLogoPath,
-        SiteFavIcon:     settingsdetails.SiteFavIcon,
-        SiteFavIconPath: settingsdetails.SiteFavIconPath,
-        WebsiteUrl:      settingsdetails.WebsiteUrl,
-        TenantId:        settingsdetails.TenantId,
-        WebsiteId:       settingsdetails.WebsiteId,
-        TemplateType:    settingsdetails.TemplateType,
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return AuthError
+	}
+
+	Settings := TblGoTemplateSettings{
+		SiteName:        settingsdetails.SiteName,
+		SiteLogo:        settingsdetails.SiteLogo,
+		SiteLogoPath:    settingsdetails.SiteLogoPath,
+		SiteFavIcon:     settingsdetails.SiteFavIcon,
+		SiteFavIconPath: settingsdetails.SiteFavIconPath,
+		WebsiteUrl:      settingsdetails.WebsiteUrl,
+		TenantId:        settingsdetails.TenantId,
+		WebsiteId:       settingsdetails.WebsiteId,
+		TemplateType:    settingsdetails.TemplateType,
         SocialMediaLink: settingsdetails.SocialMediaLink,
-    }
- 
-    fmt.Println("")
- 
-    err := menumodel.SettingsUpdates(Settings, menu.DB)
- 
-    if err != nil {
- 
-        return err
- 
-    }
- 
-    return nil
+        HeaderThame: settingsdetails.HeaderThame,
+	}
+
+	fmt.Println("")
+
+	err := menumodel.SettingsUpdates(Settings, menu.DB)
+
+	if err != nil {
+
+		return err
+
+	}
+
+	return nil
 }
