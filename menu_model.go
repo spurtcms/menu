@@ -47,6 +47,7 @@ type TblMenus struct {
 	MetaKeywords    string
 	SeparateWindow  int
 	HtmlDescription template.HTML `gorm:"-"`
+	MenuGroup       string
 }
 
 type MenuModel struct {
@@ -78,6 +79,7 @@ type MenuCreate struct {
 	MetaKeywords    string
 	SeperateWindow  int
 	OrderIndex      int
+	MenuGroup       string
 }
 type OrderItem struct {
 	MenuItemID   int  `json:"menuitem_id"`
@@ -147,7 +149,7 @@ func (menu *MenuModel) UpdateMenu(menureq *TblMenus, DB *gorm.DB) (TblMenus, err
 
 	if menureq.ParentId == 0 {
 
-		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name,"menu_title":menureq.MenuTitle, "slug_name": menureq.SlugName, "status": menureq.Status, "description": menureq.Description, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "website_id": menureq.WebsiteId, "separate_window": menureq.SeparateWindow}).Error; err != nil {
+		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "menu_title": menureq.MenuTitle, "slug_name": menureq.SlugName, "status": menureq.Status, "description": menureq.Description, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "website_id": menureq.WebsiteId, "separate_window": menureq.SeparateWindow}).Error; err != nil {
 
 			return TblMenus{}, err
 		}
@@ -322,6 +324,49 @@ func (menu *MenuModel) GetmenusByTenantId(websiteid int, DB *gorm.DB, tenantid s
 
 	return menudet, nil
 }
+
+func (menu *MenuModel) GetMenusBySlugMenuGroup(websiteid int,DB *gorm.DB,tenantid string,slug string,) (string, []TblMenus, error) {
+
+	var menus []TblMenus
+	var menuGroup string
+
+	query := DB.Model(&TblMenus{}).
+		Where("tenant_id = ? AND website_id = ? AND is_deleted = 0 AND status = 1",
+			tenantid, websiteid)
+
+	if slug != "" {
+
+		subQuery := DB.Model(&TblMenus{}).
+			Select("menu_group").
+			Where("tenant_id = ? AND website_id = ? AND slug_name = ? AND is_deleted = 0 AND status = 1",
+				tenantid, websiteid, slug).
+			Limit(1)
+
+		query = query.Where("menu_group = (?)", subQuery)
+
+	} else {
+
+		query = query.Where("menu_group = ?", "picco-service")
+		menuGroup = "picco-service"
+	}
+
+	err := query.
+		Order("parent_id ASC, order_index ASC").
+		Find(&menus).Error
+
+	if err != nil {
+		return "", nil, err
+	}
+
+	// If slug used, extract group from result
+	if slug != "" && len(menus) > 0 {
+		menuGroup = menus[0].MenuGroup
+	}
+
+	return menuGroup, menus, nil
+}
+
+
 func (menu *MenuModel) UpdateMenuItemOrder(DB *gorm.DB, menuitems []OrderItem, userid int, tenantid string) error {
 	ModifiedOn, _ := time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 

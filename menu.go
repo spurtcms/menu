@@ -82,6 +82,8 @@ func (menu *Menu) CreateMenus(req MenuCreate) (TblMenus, error) {
 
 	menus.Description = req.Description
 
+	menus.MenuGroup = req.MenuGroup
+
 	menus.CreatedBy = req.CreatedBy
 
 	menus.ParentId = req.ParentId
@@ -443,6 +445,18 @@ func (menu *Menu) GetmenusByTenantId(websiteid int, tenantid string) ([]TblMenus
 	GetData, _ := menumodel.GetmenusByTenantId(websiteid, menu.DB, tenantid)
 
 	return GetData, nil
+}
+
+func (menu *Menu) GetmenusByMenuGroup(websiteid int, tenantid string, pageRoute string) (string, []TblMenus, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return "", []TblMenus{}, AuthError
+	}
+
+	menuGroup, GetData, _ := menumodel.GetMenusBySlugMenuGroup(websiteid, menu.DB, tenantid, pageRoute)
+
+	return menuGroup, GetData, nil
 }
 
 func (menu *Menu) UpdateMenuItemOrder(menuitems []OrderItem, userid int, tenantid string) error {
