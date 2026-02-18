@@ -1,6 +1,7 @@
 package menu
 
 import (
+	"fmt"
 	"html/template"
 	"time"
 
@@ -325,11 +326,12 @@ func (menu *MenuModel) GetmenusByTenantId(websiteid int, DB *gorm.DB, tenantid s
 	return menudet, nil
 }
 
-func (menu *MenuModel) GetMenusBySlugMenuGroup(websiteid int,DB *gorm.DB,tenantid string,slug string,) (string, []TblMenus, error) {
+func (menu *MenuModel) GetMenusBySlugMenuGroup(websiteid int, DB *gorm.DB, tenantid string, slug string) (string, []TblMenus, error) {
 
 	var menus []TblMenus
 	var menuGroup string
 
+fmt.Println("")
 	query := DB.Model(&TblMenus{}).
 		Where("tenant_id = ? AND website_id = ? AND is_deleted = 0 AND status = 1",
 			tenantid, websiteid)
@@ -337,9 +339,14 @@ func (menu *MenuModel) GetMenusBySlugMenuGroup(websiteid int,DB *gorm.DB,tenanti
 	if slug != "" {
 
 		subQuery := DB.Model(&TblMenus{}).
-			Select("menu_group").
-			Where("tenant_id = ? AND website_id = ? AND slug_name = ? AND is_deleted = 0 AND status = 1",
-				tenantid, websiteid, slug).
+			// Select("menu_group").Debug().
+			// Where("tenant_id = ? AND website_id = ? AND slug_name = ? AND is_deleted = 0 AND status = 1",
+			// 	tenantid, websiteid, slug).
+			// Limit(1)
+
+			Select("menu_group").Debug().
+			Where("tenant_id = ? AND website_id = ? AND url_path = ? AND is_deleted = 0 AND status = 1",
+				tenantid, websiteid, "/"+slug).
 			Limit(1)
 
 		query = query.Where("menu_group = (?)", subQuery)
@@ -351,7 +358,7 @@ func (menu *MenuModel) GetMenusBySlugMenuGroup(websiteid int,DB *gorm.DB,tenanti
 	}
 
 	err := query.
-		Order("parent_id ASC, order_index ASC").
+		Order("parent_id ASC, order_index ASC").Debug().
 		Find(&menus).Error
 
 	if err != nil {
@@ -365,7 +372,6 @@ func (menu *MenuModel) GetMenusBySlugMenuGroup(websiteid int,DB *gorm.DB,tenanti
 
 	return menuGroup, menus, nil
 }
-
 
 func (menu *MenuModel) UpdateMenuItemOrder(DB *gorm.DB, menuitems []OrderItem, userid int, tenantid string) error {
 	ModifiedOn, _ := time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
