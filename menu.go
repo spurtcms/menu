@@ -140,7 +140,7 @@ func (menu *Menu) UpdateMenu(req MenuCreate) (TblMenus, error) {
 		return TblMenus{}, AuthError
 	}
 
-	if req.Id <= 0 || req.MenuName == "" {
+	if req.Id <= 0 {
 
 		return TblMenus{}, ErrorMenuName
 	}
@@ -157,7 +157,7 @@ func (menu *Menu) UpdateMenu(req MenuCreate) (TblMenus, error) {
 	menudet.MenuTitle = req.MenuTitle
 
 	menudet.Description = req.Description
-	
+
 	menudet.MenuGroup = req.MenuGroup
 
 	menudetSlug = strings.ToLower(strings.ReplaceAll(req.MenuName, " ", "-"))

@@ -150,12 +150,12 @@ func (menu *MenuModel) UpdateMenu(menureq *TblMenus, DB *gorm.DB) (TblMenus, err
 
 	if menureq.ParentId == 0 {
 
-		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "menu_title": menureq.MenuTitle, "slug_name": menureq.SlugName, "status": menureq.Status, "description": menureq.Description,"menu_group":menureq.MenuGroup, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "website_id": menureq.WebsiteId, "separate_window": menureq.SeparateWindow}).Error; err != nil {
+		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).Debug().UpdateColumns(map[string]interface{}{ "menu_title": menureq.MenuTitle, "slug_name": menureq.SlugName, "status": menureq.Status, "description": menureq.Description, "menu_group": menureq.MenuGroup, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "website_id": menureq.WebsiteId, "separate_window": menureq.SeparateWindow}).Error; err != nil {
 
 			return TblMenus{}, err
 		}
 	} else {
-		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).UpdateColumns(map[string]interface{}{"name": menureq.Name, "url_path": menureq.UrlPath, "parent_id": menureq.ParentId, "description": menureq.Description,"menu_group":menureq.MenuGroup, "status": menureq.Status, "slug_name": menureq.SlugName, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "type": menureq.Type, "type_id": menureq.TypeId, "website_id": menureq.WebsiteId, "image_name": menureq.ImageName, "image_path": menureq.ImagePath, "listings_ids": menureq.ListingsIds, "category_ids": menureq.CategoryIds, "meta_title": menureq.MetaTitle, "meta_description": menureq.MetaDescription, "meta_keywords": menureq.MetaKeywords, "separate_window": menureq.SeparateWindow}).Error; err != nil {
+		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).Debug().UpdateColumns(map[string]interface{}{"name": menureq.Name, "url_path": menureq.UrlPath, "parent_id": menureq.ParentId, "description": menureq.Description, "menu_group": menureq.MenuGroup, "status": menureq.Status, "slug_name": menureq.SlugName, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "type": menureq.Type, "type_id": menureq.TypeId, "website_id": menureq.WebsiteId, "image_name": menureq.ImageName, "image_path": menureq.ImagePath, "listings_ids": menureq.ListingsIds, "category_ids": menureq.CategoryIds, "meta_title": menureq.MetaTitle, "meta_description": menureq.MetaDescription, "meta_keywords": menureq.MetaKeywords, "separate_window": menureq.SeparateWindow}).Error; err != nil {
 
 			return TblMenus{}, err
 		}
@@ -237,7 +237,7 @@ func (menu *MenuModel) CheckMenuName(menureq TblMenus, menuid int, name string, 
 		}
 	} else {
 
-		if err := DB.Table("tbl_menus").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0 and website_id=? and  tenant_id = ? and parent_id=?", name, menuid, websiteid, tenantid, parentid).First(&menureq).Error; err != nil {
+		if err := DB.Debug().Table("tbl_menus").Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0 and website_id=? and  tenant_id = ? and parent_id=?", name, menuid, websiteid, tenantid, parentid).First(&menureq).Error; err != nil {
 
 			return err
 		}
