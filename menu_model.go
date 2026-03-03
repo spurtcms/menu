@@ -150,7 +150,7 @@ func (menu *MenuModel) UpdateMenu(menureq *TblMenus, DB *gorm.DB) (TblMenus, err
 
 	if menureq.ParentId == 0 {
 
-		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).Debug().UpdateColumns(map[string]interface{}{ "menu_title": menureq.MenuTitle, "slug_name": menureq.SlugName, "status": menureq.Status, "description": menureq.Description, "menu_group": menureq.MenuGroup, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "website_id": menureq.WebsiteId, "separate_window": menureq.SeparateWindow}).Error; err != nil {
+		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).Debug().UpdateColumns(map[string]interface{}{"menu_title": menureq.MenuTitle, "slug_name": menureq.SlugName, "status": menureq.Status, "description": menureq.Description, "menu_group": menureq.MenuGroup, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "website_id": menureq.WebsiteId, "separate_window": menureq.SeparateWindow}).Error; err != nil {
 
 			return TblMenus{}, err
 		}
@@ -171,6 +171,7 @@ func (menu *MenuModel) GetMenuTree(menuid int, DB *gorm.DB, tenantid string) ([]
             SELECT id,  name,
             slug_name,
 			description,
+			menu_group,
             parent_id,
             created_on,
             modified_on,
@@ -189,6 +190,7 @@ func (menu *MenuModel) GetMenuTree(menuid int, DB *gorm.DB, tenantid string) ([]
             SELECT me.id, me.name,
             me.slug_name,
 			me.description,
+			me.menu_group,
             me.parent_id,
             me.created_on,
             me.modified_on,
