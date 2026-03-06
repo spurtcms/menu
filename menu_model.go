@@ -150,7 +150,7 @@ func (menu *MenuModel) UpdateMenu(menureq *TblMenus, DB *gorm.DB) (TblMenus, err
 
 	if menureq.ParentId == 0 {
 
-		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).Debug().UpdateColumns(map[string]interface{}{"menu_title": menureq.MenuTitle, "slug_name": menureq.SlugName, "status": menureq.Status, "description": menureq.Description, "menu_group": menureq.MenuGroup, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "website_id": menureq.WebsiteId, "separate_window": menureq.SeparateWindow}).Error; err != nil {
+		if err := DB.Table("tbl_menus").Where("id = ? and  tenant_id = ?", menureq.Id, menureq.TenantId).Debug().UpdateColumns(map[string]interface{}{"menu_title": menureq.MenuTitle, "slug_name": menureq.SlugName, "status": menureq.Status, "description": menureq.Description, "menu_group": menureq.MenuGroup, "order_index": menureq.OrderIndex, "modified_by": menureq.ModifiedBy, "modified_on": menureq.ModifiedOn, "website_id": menureq.WebsiteId, "separate_window": menureq.SeparateWindow}).Error; err != nil {
 
 			return TblMenus{}, err
 		}
@@ -341,11 +341,6 @@ func (menu *MenuModel) GetMenusBySlugMenuGroup(websiteid int, DB *gorm.DB, tenan
 	if slug != "" {
 
 		subQuery := DB.Model(&TblMenus{}).
-			// Select("menu_group").Debug().
-			// Where("tenant_id = ? AND website_id = ? AND slug_name = ? AND is_deleted = 0 AND status = 1",
-			// 	tenantid, websiteid, slug).
-			// Limit(1)
-
 			Select("menu_group").Debug().
 			Where("tenant_id = ? AND website_id = ? AND url_path = ? AND is_deleted = 0 AND status = 1",
 				tenantid, websiteid, "/"+slug).
@@ -360,7 +355,7 @@ func (menu *MenuModel) GetMenusBySlugMenuGroup(websiteid int, DB *gorm.DB, tenan
 	}
 
 	err := query.
-		Order("parent_id ASC, order_index ASC").Debug().
+		Order("order_index ASC").
 		Find(&menus).Error
 
 	if err != nil {

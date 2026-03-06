@@ -119,7 +119,7 @@ func (menu *Menu) CreateMenus(req MenuCreate) (TblMenus, error) {
 	menus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 	menus.SeparateWindow = req.SeperateWindow
 
-	menus.OrderIndex = 1
+	menus.OrderIndex = req.OrderIndex
 
 	menn, err := menumodel.CreateMenus(&menus, menu.DB)
 
@@ -159,6 +159,8 @@ func (menu *Menu) UpdateMenu(req MenuCreate) (TblMenus, error) {
 	menudet.Description = req.Description
 
 	menudet.MenuGroup = req.MenuGroup
+
+	menudet.OrderIndex = req.OrderIndex
 
 	menudetSlug = strings.ToLower(strings.ReplaceAll(req.MenuName, " ", "-"))
 
