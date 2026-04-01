@@ -22,17 +22,17 @@ type TblGoTemplateSeo struct {
 }
 
 func (menu *MenuModel) SeoDetails(tenantid string, websiteid int, DB *gorm.DB) (seo TblGoTemplateSeo, err error) {
-
-	var SeoDetail TblGoTemplateSeo
-
-	if err := DB.Table("tbl_go_template_seos").Where("tenant_id = ? and website_id=?", tenantid, websiteid).First(&SeoDetail).Error; err != nil {
-
-		return TblGoTemplateSeo{}, err
-	}
-
-	fmt.Println("Hello")
-
-	return SeoDetail, nil
+ 
+    var SeoDetail TblGoTemplateSeo
+ 
+    if err := DB.Table("tbl_go_template_seos").Where("tenant_id = ?", tenantid).First(&SeoDetail).Error; err != nil {
+ 
+        return TblGoTemplateSeo{}, err
+    }
+ 
+    fmt.Println("")
+ 
+    return SeoDetail, nil
 }
 
 func (menu *MenuModel) SeoUpdates(seodetails TblGoTemplateSeo, DB *gorm.DB) (err error) {
