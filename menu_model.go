@@ -91,50 +91,49 @@ type OrderItem struct {
 
 // Menu Listing
 func (menu *MenuModel) MenuList(limit int, offset int, filter Filter, DB *gorm.DB, tenantid string, websiteid int) (menus []TblMenus, count int64, err error) {
-
-	var menucount int64
-
-	query := DB.Table("tbl_menus").Where("is_deleted = 0 and parent_id=0 and website_id=? and tenant_id = ?", websiteid, tenantid).Order("tbl_menus.created_on desc")
-
-	if filter.Keyword != "" {
-
-		query = query.Where("LOWER(TRIM(name)) like LOWER(TRIM(?))", "%"+filter.Keyword+"%")
-	}
-
-	if filter.ToDate != "" {
-		query = query.Where("tbl_menus.modified_on >= ? AND tbl_menus.modified_on < ?",
-			filter.ToDate+" 00:00:00",
-			filter.ToDate+" 23:59:59")
-	}
-	if filter.Status != "" {
-
-		if filter.Status == "Active" {
-
-			query = query.Where("tbl_menus.status=?", 1)
-		}
-		if filter.Status == "Inactive" {
-
-			query = query.Where("tbl_menus.status=?", 0)
-		}
-	}
-	if limit != 0 {
-
-		query.Limit(limit).Offset(offset).Find(&menus)
-
-		return menus, menucount, nil
-
-	}
-
-	query.Find(&menus).Count(&menucount)
-
-	if query.Error != nil {
-
-		return []TblMenus{}, 0, query.Error
-	}
-
-	return menus, menucount, nil
+ 
+    var menucount int64
+ 
+    query := DB.Table("tbl_menus").Where("is_deleted = 0 and parent_id=0  and tenant_id = ?", tenantid).Order("tbl_menus.created_on desc")
+ 
+    if filter.Keyword != "" {
+ 
+        query = query.Where("LOWER(TRIM(name)) like LOWER(TRIM(?))", "%"+filter.Keyword+"%")
+    }
+ 
+    if filter.ToDate != "" {
+        query = query.Where("tbl_menus.modified_on >= ? AND tbl_menus.modified_on < ?",
+            filter.ToDate+" 00:00:00",
+            filter.ToDate+" 23:59:59")
+    }
+    if filter.Status != "" {
+ 
+        if filter.Status == "Active" {
+ 
+            query = query.Where("tbl_menus.status=?", 1)
+        }
+        if filter.Status == "Inactive" {
+ 
+            query = query.Where("tbl_menus.status=?", 0)
+        }
+    }
+    if limit != 0 {
+ 
+        query.Limit(limit).Offset(offset).Find(&menus)
+ 
+        return menus, menucount, nil
+ 
+    }
+ 
+    query.Find(&menus).Count(&menucount)
+ 
+    if query.Error != nil {
+ 
+        return []TblMenus{}, 0, query.Error
+    }
+ 
+    return menus, menucount, nil
 }
-
 // Create Menu
 func (menu *MenuModel) CreateMenus(req *TblMenus, DB *gorm.DB) (TblMenus, error) {
 
