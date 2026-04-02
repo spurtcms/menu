@@ -42,6 +42,7 @@ type TblWidgets struct {
 	WidgetLimit     int                   `gorm:"type:integer"`
 	PageData        []TblTemplatePages    `gorm:"-"`
 	ChennalsEntries []channels.Tblchannel `gorm:"-"`
+	TemplateId      int                   `gorm:"type:integer"`
 }
 
 type TblWidgetProducts struct {
