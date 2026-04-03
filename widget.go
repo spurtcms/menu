@@ -21,7 +21,7 @@ type WidgetInput struct {
 	SectionFieldTypeId  int
 }
 
-func (menu *Menu) GetWidgetList(limit int, offset int, filter Filter, tenantid string, websiteid int) ([]TblWidgets, int, error) {
+func (menu *Menu) GetWidgetList(limit int, offset int, filter Filter, tenantid string, templateid int) ([]TblWidgets, int, error) {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
@@ -31,9 +31,9 @@ func (menu *Menu) GetWidgetList(limit int, offset int, filter Filter, tenantid s
 	menumodel.DataAccess = menu.DataAccess
 	menumodel.Userid = menu.UserId
 
-	_, totalcount, _ := menumodel.WidgetList(0, 0, filter, menu.DB, tenantid, websiteid)
+	_, totalcount, _ := menumodel.WidgetList(0, 0, filter, menu.DB, tenantid, templateid)
 
-	widgetlist, _, cerr := menumodel.WidgetList(limit, offset, filter, menu.DB, tenantid, websiteid)
+	widgetlist, _, cerr := menumodel.WidgetList(limit, offset, filter, menu.DB, tenantid, templateid)
 
 	if cerr != nil {
 

@@ -55,11 +55,11 @@ type TblWidgetProducts struct {
 }
 
 // WidgetList
-func (menu *MenuModel) WidgetList(limit int, offset int, filter Filter, DB *gorm.DB, Tenantid string, websiteid int) (widgets []TblWidgets, count int64, err error) {
+func (menu *MenuModel) WidgetList(limit int, offset int, filter Filter, DB *gorm.DB, Tenantid string, templateid int) (widgets []TblWidgets, count int64, err error) {
 
 	var widgetcount int64
 
-	query := DB.Table("tbl_widgets").Where("is_deleted = 0 and website_id=? and tenant_id = ?", websiteid, Tenantid).Order("tbl_widgets.created_on desc")
+	query := DB.Table("tbl_widgets").Where("is_deleted = 0 and template_id=? and tenant_id = ?", templateid, Tenantid).Order("tbl_widgets.created_on desc")
 
 	if filter.Keyword != "" {
 
