@@ -53,7 +53,7 @@ func (menu *MenuModel) TemplatePageList(limit int, offset int, filter Filter, DB
 
 	var pagecount int64
 
-	query := DB.Table("tbl_template_pages").Where("is_deleted = 0 and website_id=? and tenant_id = ?", websiteid, Tenantid).Order("tbl_template_pages.order_index asc")
+	query := DB.Table("tbl_template_pages").Where("is_deleted = 0  and tenant_id = ?", Tenantid).Order("tbl_template_pages.order_index asc")
 
 	if filter.Keyword != "" {
 

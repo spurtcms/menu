@@ -94,7 +94,7 @@ func (menu *MenuModel) MenuList(limit int, offset int, filter Filter, DB *gorm.D
 
 	var menucount int64
 
-	query := DB.Table("tbl_menus").Where("is_deleted = 0 and parent_id=0 and website_id=? and tenant_id = ?", websiteid, tenantid).Order("tbl_menus.created_on desc")
+	query := DB.Table("tbl_menus").Where("is_deleted = 0 and parent_id=0  and tenant_id = ?", tenantid).Order("tbl_menus.created_on desc")
 
 	if filter.Keyword != "" {
 
