@@ -205,7 +205,7 @@ func (menu *MenuModel) FetchBasicWidgetList(DB *gorm.DB, input WidgetInput) ([]T
 	err := DB.Table("tbl_widgets w").
 		Select(`w.*, STRING_AGG(DISTINCT wp.product_id::text, ',') AS "ProductIds"`).
 		Joins("LEFT JOIN tbl_widget_products wp ON w.id = wp.widget_id").
-		Where("w.is_deleted = 0 AND w.tenant_id = ? AND w.website_id = ? AND w.status = 1", input.TenantId, input.WebsiteId).
+		Where("w.is_deleted = 0 AND w.tenant_id = ? AND w.status = 1", input.TenantId).
 		Group("w.id").
 		Order("w.id DESC").
 		Scan(&widgets).Error
