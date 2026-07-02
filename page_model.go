@@ -1,6 +1,7 @@
 package menu
 
 import (
+	"fmt"
 	"html/template"
 	"time"
 
@@ -27,6 +28,7 @@ type TblTemplatePages struct {
 	MetaDescription string        `gorm:"type:character varying"`
 	MetaKeywords    string        `gorm:"type:character varying"`
 	MetaSlug        string        `gorm:"type:character varying"`
+	OgImage         string        `gorm:"type:character varying"`
 	WebsiteId       int           `gorm:"type:integer"`
 	MenuNames       string        `gorm:"-"`
 	PageType        string        `gorm:"type:character varying"`
@@ -35,6 +37,8 @@ type TblTemplatePages struct {
 	OrderIndex      int           `gorm:"type:integer"`
 	HtmlDescription template.HTML `gorm:"-"`
 	CloneCount      int           `gorm:"type:integer"`
+	StructureId     int           `gorm:"type:integer"`
+	GroupId         int           `gorm:"type:integer"`
 }
 
 // Create Page
@@ -258,4 +262,295 @@ func (menu *MenuModel) UpdatePageOrderIndex(pageinfo *TblTemplatePages, DB *gorm
 
 	return nil
 
+}
+
+// new page group and structure functions
+
+type TblStructures struct {
+	Id                   int       `gorm:"primaryKey;auto_increment;type:serial"`
+	StructureName        string    `gorm:"type:character varying"`
+	StructureSlug        string    `gorm:"type:character varying"`
+	StructureDescription string    `gorm:"type:character varying"`
+	TenantId             string    `gorm:"type:character varying"`
+	CreatedOn            time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
+	CreatedBy            string    `gorm:"type:integer"`
+	ModifiedOn           time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
+	IsDeleted            int       `gorm:"type:integer;DEFAULT:0"`
+	ModifiedBy           int       `gorm:"type:integer"`
+}
+
+type StructureListResponse struct {
+	ID int `json:"id"`
+
+	StructureName string `json:"structure_name"`
+
+	StructureSlug string `json:"structure_slug"`
+
+	StructureDescription string `json:"structure_description"`
+
+	TenantId string `json:"tenant_id"`
+
+	PageCount int `json:"page_count"`
+
+	PageGroupCount int `json:"page_group_count"`
+}
+
+type TblPageGroup struct {
+	Id          int       `gorm:"primaryKey;auto_increment;type:serial"`
+	GroupName   string    `gorm:"type:character varying"`
+	GroupSlug   string    `gorm:"type:character varying"`
+	TenantId    string    `gorm:"type:character varying"`
+	StructureId int       `gorm:"type:integer"`
+	CreatedOn   time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
+	CreatedBy   string    `gorm:"type:integer"`
+	ModifiedOn  time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
+	IsDeleted   int       `gorm:"type:integer;DEFAULT:0"`
+	ModifiedBy  int       `gorm:"type:integer"`
+}
+
+type PageGroupResponse struct {
+	Id int `json:"id"`
+
+	GroupName string `json:"group_name"`
+
+	GroupSlug string `json:"group_slug"`
+
+	Pages []PageTreeNode `json:"pages"`
+}
+type PageTreeNode struct {
+	TblTemplatePages
+	Children []TblTemplatePages
+}
+
+type StructureDetailsResponse struct {
+
+	// structure details
+	TblStructures TblStructures `json:"structure"`
+
+	// top-level pages (parent_id=0) with children nested
+	Pages []PageTreeNode `json:"pages"`
+
+	// page groups with pages
+	PageGroups []PageGroupResponse `json:"page_groups"`
+}
+
+type TblTemplatePagesResponce struct {
+	Id              int       `gorm:"primaryKey;auto_increment;type:serial"`
+	Name            string    `gorm:"type:character varying"`
+	Slug            string    `gorm:"type:character varying"`
+	PageDescription string    `gorm:"type:character varying"`
+	TenantId        string    `gorm:"type:character varying"`
+	IsDeleted       int       `gorm:"type:integer"`
+	DeletedOn       time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
+	DeletedBy       int       `gorm:"DEFAULT:NULL"`
+	CreatedOn       time.Time `gorm:"type:timestamp without time zone"`
+	CreatedBy       int       `gorm:"DEFAULT:NULL"`
+	ModifiedOn      time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
+	ModifiedBy      int       `gorm:"DEFAULT:NULL"`
+	CreatedDate     string    `gorm:"-:migration;<-:false"`
+	ModifiedDate    string    `gorm:"-:migration;<-:false"`
+	Status          int       `gorm:"type:integer"`
+	MetaTitle       string    `gorm:"type:character varying"`
+	MetaDescription string    `gorm:"type:character varying"`
+	MetaKeywords    string    `gorm:"type:character varying"`
+	MetaSlug        string    `gorm:"type:character varying"`
+	WebsiteId       int       `gorm:"type:integer"`
+	MenuNames       string    `gorm:"-"`
+	PageType        string    `gorm:"type:character varying"`
+	CustomPagePath  string    `gorm:"type:character varying"`
+	ParentId        int       `gorm:"type:integer"`
+	OrderIndex      int       `gorm:"type:integer"`
+	StructureId     int       `gorm:"type:integer"`
+	PagegroupId     int       `gorm:"type:integer"`
+
+	CloneCount int `gorm:"type:integer"`
+}
+
+// page models
+
+func (menu *MenuModel) Addpagegroupdata(group *TblPageGroup, DB *gorm.DB) (err error) {
+
+	err1 := DB.Table("tbl_page_groups").Create(group).Error
+
+	if err1 != nil {
+		return err1
+	}
+
+	return nil
+
+}
+
+func (menu *MenuModel) GetStructureDetailsBasedonId(structureid int, DB *gorm.DB) (StructureDetails TblStructures, err error) {
+
+	var structure TblStructures
+
+	err1 := DB.Table("tbl_structures").Where("id = ?", structureid).Find(&structure).Error
+
+	if err1 != nil {
+		return structure, err1
+	}
+
+	return structure, nil
+
+}
+
+func (menu *MenuModel) Addstructuredata(structure TblStructures, DB *gorm.DB) (err error) {
+
+	err1 := DB.Table("tbl_structures").Create(&structure).Error
+
+	if err != nil {
+		return err1
+	}
+
+	return nil
+
+}
+
+func (menu *MenuModel) GetStructureDataBasedOnTenant(Tenantid string, DB *gorm.DB) ([]StructureListResponse, error) {
+
+	fmt.Println("GetStructureDataBasedOnTenantGetStructureDataBasedOnTenant tenant id", Tenantid)
+
+	var structures []StructureListResponse
+
+	err := DB.Table("tbl_structures s").
+		Select(`
+            s.id,
+            s.structure_name,
+            s.structure_slug,
+            s.structure_description,
+            s.tenant_id,
+ 
+            (
+                SELECT COUNT(*)
+                FROM tbl_template_pages p
+                WHERE p.structure_id = s.id
+            ) as page_count,
+ 
+            (
+                SELECT COUNT(*)
+                FROM tbl_page_groups g
+                WHERE g.structure_id = s.id
+            ) as page_group_count
+        `).
+		Where("s.tenant_id = ?", Tenantid).
+		Scan(&structures).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return structures, nil
+}
+
+func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB) (StructureDetailsResponse, error) {
+
+	var response StructureDetailsResponse
+
+	// get structure details
+
+	var structure TblStructures
+
+	err := DB.Debug().
+		Table("tbl_structures").
+		Where(
+			"structure_slug = ?",
+			structure_slug,
+		).
+		First(&structure).Error
+
+	if err != nil {
+		return response, err
+	}
+
+	// assign structure data
+
+	response.TblStructures = structure
+
+	// get top-level direct pages (no group, no parent)
+
+	var topPages []TblTemplatePages
+
+	err = DB.Debug().
+		Table("tbl_template_pages").
+		Where(
+			"structure_id = ? AND (group_id = 0 OR group_id IS NULL) AND parent_id = 0",
+			structure.Id,
+		).
+		Find(&topPages).Error
+
+	if err != nil {
+		return response, err
+	}
+
+	for _, p := range topPages {
+		var children []TblTemplatePages
+		DB.Debug().
+			Table("tbl_template_pages").
+			Where("parent_id = ?", p.Id).
+			Find(&children)
+		response.Pages = append(response.Pages, PageTreeNode{
+			TblTemplatePages: p,
+			Children:         children,
+		})
+	}
+
+	// get page groups
+
+	var groups []TblPageGroup
+
+	err = DB.Debug().
+		Table("tbl_page_groups").
+		Where(
+			"structure_id = ?",
+			structure.Id,
+		).
+		Find(&groups).Error
+
+	if err != nil {
+		return response, err
+	}
+
+	for _, group := range groups {
+
+		var topGroupPages []TblTemplatePages
+
+		DB.Debug().
+			Table("tbl_template_pages").
+			Where(
+				"group_id = ? AND parent_id = 0",
+				group.Id,
+			).
+			Find(&topGroupPages)
+
+		var groupPageNodes []PageTreeNode
+		for _, p := range topGroupPages {
+			var children []TblTemplatePages
+			DB.Debug().
+				Table("tbl_template_pages").
+				Where("parent_id = ?", p.Id).
+				Find(&children)
+			groupPageNodes = append(groupPageNodes, PageTreeNode{
+				TblTemplatePages: p,
+				Children:         children,
+			})
+		}
+
+		response.PageGroups = append(
+			response.PageGroups,
+
+			PageGroupResponse{
+
+				Id: group.Id,
+
+				GroupName: group.GroupName,
+
+				GroupSlug: group.GroupSlug,
+
+				Pages: groupPageNodes,
+			},
+		)
+
+	}
+
+	return response, nil
 }
