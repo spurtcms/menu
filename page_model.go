@@ -273,26 +273,21 @@ type TblStructures struct {
 	StructureDescription string    `gorm:"type:character varying"`
 	TenantId             string    `gorm:"type:character varying"`
 	CreatedOn            time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
-	CreatedBy            string    `gorm:"type:integer"`
+	CreatedBy            string    `gorm:"type:character varying"`
 	ModifiedOn           time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
 	IsDeleted            int       `gorm:"type:integer;DEFAULT:0"`
-	ModifiedBy           int       `gorm:"type:integer"`
+	ModifiedBy           string    `gorm:"type:character varying"`
 }
-
 type StructureListResponse struct {
-	ID int `json:"id"`
-
-	StructureName string `json:"structure_name"`
-
-	StructureSlug string `json:"structure_slug"`
-
-	StructureDescription string `json:"structure_description"`
-
-	TenantId string `json:"tenant_id"`
-
-	PageCount int `json:"page_count"`
-
-	PageGroupCount int `json:"page_group_count"`
+	ID                   int       `json:"id"`
+	StructureName        string    `json:"structure_name"`
+	StructureSlug        string    `json:"structure_slug"`
+	StructureDescription string    `json:"structure_description"`
+	CreatedOn            time.Time `json:"created_on"`
+	TenantId             string    `json:"tenant_id"`
+	CreatedOnFormat      string    `json:"created_on_format" gorm:"-"`
+	PageCount            int       `json:"page_count"`
+	PageGroupCount       int       `json:"page_group_count"`
 }
 
 type TblPageGroup struct {
@@ -302,10 +297,10 @@ type TblPageGroup struct {
 	TenantId    string    `gorm:"type:character varying"`
 	StructureId int       `gorm:"type:integer"`
 	CreatedOn   time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
-	CreatedBy   string    `gorm:"type:integer"`
+	CreatedBy   string    `gorm:"type:character varying"`
 	ModifiedOn  time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
 	IsDeleted   int       `gorm:"type:integer;DEFAULT:0"`
-	ModifiedBy  int       `gorm:"type:integer"`
+	ModifiedBy  string    `gorm:"type:character varying"`
 }
 
 type PageGroupResponse struct {
@@ -394,16 +389,14 @@ func (menu *MenuModel) GetStructureDetailsBasedonId(structureid int, DB *gorm.DB
 
 }
 
-func (menu *MenuModel) Addstructuredata(structure TblStructures, DB *gorm.DB) (err error) {
+func (menu *MenuModel) Addstructuredata(structure TblStructures, DB *gorm.DB) (TblStructures, error) {
 
-	err1 := DB.Table("tbl_structures").Create(&structure).Error
-
+	err := DB.Table("tbl_structures").Create(&structure).Error
 	if err != nil {
-		return err1
+		return TblStructures{}, err
 	}
 
-	return nil
-
+	return structure, nil
 }
 
 func (menu *MenuModel) GetStructureDataBasedOnTenant(Tenantid string, DB *gorm.DB) ([]StructureListResponse, error) {
@@ -419,20 +412,22 @@ func (menu *MenuModel) GetStructureDataBasedOnTenant(Tenantid string, DB *gorm.D
             s.structure_slug,
             s.structure_description,
             s.tenant_id,
+            s.created_on,
  
             (
                 SELECT COUNT(*)
                 FROM tbl_template_pages p
-                WHERE p.structure_id = s.id
+                WHERE p.structure_id = s.id AND is_deleted = 0
+                
             ) as page_count,
  
             (
                 SELECT COUNT(*)
                 FROM tbl_page_groups g
-                WHERE g.structure_id = s.id
+                WHERE g.structure_id = s.id AND is_deleted = 0
             ) as page_group_count
         `).
-		Where("s.tenant_id = ?", Tenantid).
+		Where("s.tenant_id = ? AND s.is_deleted = 0", Tenantid).Order("s.id DESC").
 		Scan(&structures).Error
 
 	if err != nil {
@@ -453,7 +448,7 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB) (
 	err := DB.Debug().
 		Table("tbl_structures").
 		Where(
-			"structure_slug = ?",
+			"structure_slug = ? ",
 			structure_slug,
 		).
 		First(&structure).Error
@@ -473,7 +468,7 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB) (
 	err = DB.Debug().
 		Table("tbl_template_pages").
 		Where(
-			"structure_id = ? AND (group_id = 0 OR group_id IS NULL) AND parent_id = 0",
+			"structure_id = ? AND (group_id = 0 OR group_id IS NULL) AND parent_id = 0 AND is_deleted = 0",
 			structure.Id,
 		).
 		Find(&topPages).Error
@@ -486,7 +481,7 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB) (
 		var children []TblTemplatePages
 		DB.Debug().
 			Table("tbl_template_pages").
-			Where("parent_id = ?", p.Id).
+			Where("parent_id = ? AND  is_deleted = 0", p.Id).
 			Find(&children)
 		response.Pages = append(response.Pages, PageTreeNode{
 			TblTemplatePages: p,
@@ -501,7 +496,7 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB) (
 	err = DB.Debug().
 		Table("tbl_page_groups").
 		Where(
-			"structure_id = ?",
+			"structure_id = ? AND is_deleted = 0",
 			structure.Id,
 		).
 		Find(&groups).Error
@@ -517,7 +512,7 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB) (
 		DB.Debug().
 			Table("tbl_template_pages").
 			Where(
-				"group_id = ? AND parent_id = 0",
+				"group_id = ? AND parent_id = 0 AND is_deleted = 0",
 				group.Id,
 			).
 			Find(&topGroupPages)
@@ -527,7 +522,7 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB) (
 			var children []TblTemplatePages
 			DB.Debug().
 				Table("tbl_template_pages").
-				Where("parent_id = ?", p.Id).
+				Where("parent_id = ? AND is_deleted = 0", p.Id).
 				Find(&children)
 			groupPageNodes = append(groupPageNodes, PageTreeNode{
 				TblTemplatePages: p,

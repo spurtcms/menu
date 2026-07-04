@@ -280,102 +280,89 @@ func (menu *Menu) UpdatePageOrderIndex(Orderindex int, pageid, userid int, tenan
 	return true, nil
 }
 
-
-
 // ===== latest pages update work stucture and grouping concept
 
 func (menu *Menu) GetStructureDetailsBasedonId(structureid int) (TblStructures, error) {
- 
-    if AuthError := AuthandPermission(menu); AuthError != nil {
- 
-        return TblStructures{},AuthError
-    }
- 
-    structure,err := menumodel.GetStructureDetailsBasedonId(structureid,menu.DB)
- 
-    if err !=nil {
-        return structure,err
-    }
- 
-    return structure,nil
- 
- 
-    
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return TblStructures{}, AuthError
+	}
+
+	structure, err := menumodel.GetStructureDetailsBasedonId(structureid, menu.DB)
+
+	if err != nil {
+		return structure, err
+	}
+
+	return structure, nil
+
 }
- 
- 
-func (menu *Menu) Addpagegroupdata(group *TblPageGroup) (error) {
- 
-    if AuthError := AuthandPermission(menu); AuthError != nil {
- 
-        return AuthError
-    }
- 
-    err := menumodel.Addpagegroupdata(group,menu.DB)
- 
-    if err !=nil {
-        return err
-    }
- 
-    return nil
- 
+
+func (menu *Menu) Addpagegroupdata(group *TblPageGroup) error {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return AuthError
+	}
+
+	err := menumodel.Addpagegroupdata(group, menu.DB)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }
- 
+
 func (menu *Menu) GetStructureData(tenant_id string) (StructureListResponse []StructureListResponse, err error) {
- 
-    // Tenantid := TenantId // get from session/JWT
- 
-    if AuthError := AuthandPermission(menu); AuthError != nil {
- 
-        return StructureListResponse,AuthError
-    }
- 
-    structures, err := menumodel.GetStructureDataBasedOnTenant(tenant_id,menu.DB)
- 
-    if err != nil {
- 
-        return nil, err
-    }
- 
-    return structures, nil
- 
+
+	// Tenantid := TenantId // get from session/JWT
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return StructureListResponse, AuthError
+	}
+
+	structures, err := menumodel.GetStructureDataBasedOnTenant(tenant_id, menu.DB)
+
+	if err != nil {
+
+		return nil, err
+	}
+
+	return structures, nil
+
 }
- 
- 
-func (menu *Menu) Addstructuredata(structure TblStructures) (err error) {
- 
- 
-    if AuthError := AuthandPermission(menu); AuthError != nil {
- 
-        return AuthError
-    }
- 
-    err = menumodel.Addstructuredata(structure,menu.DB)
- 
-    if err != nil {
-        return err
-    }
- 
-    return nil
- 
+
+func (menu *Menu) Addstructuredata(structure TblStructures) (TblStructures, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+		return TblStructures{}, AuthError
+	}
+
+	data, err := menumodel.Addstructuredata(structure, menu.DB)
+	if err != nil {
+		return TblStructures{}, err
+	}
+
+	return data, nil
 }
- 
- 
- 
-func (menu *Menu) GetStructureDetails(structure_slug string) (sruct StructureDetailsResponse,err error) {
- 
- 
-    if AuthError := AuthandPermission(menu); AuthError != nil {
- 
-        return sruct,AuthError
-    }
- 
-    structure,err := menumodel.GetStructureDetails(structure_slug,menu.DB)
- 
-    if err != nil {
-        return structure,err
-    }
- 
-    return structure,nil
- 
+
+func (menu *Menu) GetStructureDetails(structure_slug string) (sruct StructureDetailsResponse, err error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return sruct, AuthError
+	}
+
+	structure, err := menumodel.GetStructureDetails(structure_slug, menu.DB)
+
+	if err != nil {
+		return structure, err
+	}
+
+	return structure, nil
+
 }
