@@ -350,14 +350,14 @@ func (menu *Menu) Addstructuredata(structure TblStructures) (TblStructures, erro
 	return data, nil
 }
 
-func (menu *Menu) GetStructureDetails(structure_slug string) (sruct StructureDetailsResponse, err error) {
+func (menu *Menu) GetStructureDetails(structure_slug string, TenantId string) (sruct StructureDetailsResponse, err error) {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 
 		return sruct, AuthError
 	}
 
-	structure, err := menumodel.GetStructureDetails(structure_slug, menu.DB)
+	structure, err := menumodel.GetStructureDetails(structure_slug, menu.DB, TenantId)
 
 	if err != nil {
 		return structure, err
@@ -365,4 +365,103 @@ func (menu *Menu) GetStructureDetails(structure_slug string) (sruct StructureDet
 
 	return structure, nil
 
+}
+
+
+func (menu *Menu) GetPageBySlugbyId(page_id int, tenantid string) (TblTemplatePages, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return TblTemplatePages{}, AuthError
+	}
+	pagedetail, err := menumodel.GetPageBySlugbyId(menu.DB, page_id, tenantid)
+
+	if err != nil {
+
+		return TblTemplatePages{}, err
+
+	}
+	return pagedetail, nil
+
+}
+
+
+func (menu *Menu) EditStructure(structureID int, structureName, structureDesc, tenantID, slug string) error {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+		return AuthError
+	}
+
+	return menumodel.EditStructure(
+		structureID,
+		structureName,
+		structureDesc,
+		tenantID,
+		slug,
+		menu.DB,
+	)
+}
+
+
+func (menu *Menu) DeleteStructure(structureID int, tenantID string) error {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+		return AuthError
+	}
+
+	return menumodel.DeleteStructure(structureID, tenantID, menu.DB)
+}
+
+func (menu *Menu) EditPageGroup(id int, groupName, groupSlug string, structureID int, tenantID string) error {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+		return AuthError
+	}
+
+	return menumodel.EditPageGroup(
+		id,
+		groupName,
+		groupSlug,
+		structureID,
+		tenantID,
+		menu.DB,
+	)
+}
+
+func (menu *Menu) DeletePageGroup(pageGroupID int, tenantID string) error {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+		return AuthError
+	}
+
+	return menumodel.DeletePageGroup(pageGroupID, tenantID, menu.DB)
+}
+
+func (menu *Menu) CheckPageGroupDuplicateSlug(groupSlug string, structureID, groupID int, tenantID string) (bool, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+		return false, AuthError
+	}
+
+	return menumodel.CheckPageGroupDuplicateSlug(
+		groupSlug,
+		structureID,
+		groupID,
+		tenantID,
+		menu.DB,
+	)
+}
+
+func (menu *Menu) DuplicateSlugBasedOnGroupStructure(slug string, groupID, structureID int) (bool, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+		return false, AuthError
+	}
+
+	return menumodel.DuplicateSlugBasedOnGroupStructure(
+		slug,
+		groupID,
+		structureID,
+		menu.DB,
+	)
 }

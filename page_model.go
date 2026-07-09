@@ -1,6 +1,7 @@
 package menu
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"time"
@@ -437,7 +438,7 @@ func (menu *MenuModel) GetStructureDataBasedOnTenant(Tenantid string, DB *gorm.D
 	return structures, nil
 }
 
-func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB) (StructureDetailsResponse, error) {
+func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB, tenant_id string) (StructureDetailsResponse, error) {
 
 	var response StructureDetailsResponse
 
@@ -448,8 +449,8 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB) (
 	err := DB.Debug().
 		Table("tbl_structures").
 		Where(
-			"structure_slug = ? ",
-			structure_slug,
+			"structure_slug = ? AND tenant_id = ? ",
+			structure_slug, tenant_id,
 		).
 		First(&structure).Error
 
@@ -548,4 +549,143 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB) (
 	}
 
 	return response, nil
+}
+
+func (menu *MenuModel) GetPageBySlugbyId(DB *gorm.DB, pageid int, tenantid string) (page TblTemplatePages, err error) {
+
+	if err := DB.Table("tbl_template_pages").Where("is_deleted = 0 and id=? and tenant_id=?", pageid, tenantid).Order("id asc").Find(&page).Error; err != nil {
+
+		return TblTemplatePages{}, err
+	}
+
+	return page, nil
+
+}
+
+
+func (menu *MenuModel) EditStructure(
+	structureID int,
+	structureName,
+	structureDesc,
+	tenantID,
+	slug string,
+	DB *gorm.DB,
+) error {
+
+	now := time.Now().UTC()
+
+	return DB.Model(&TblStructures{}).
+		Where("id = ? AND tenant_id = ?", structureID, tenantID).
+		Updates(map[string]interface{}{
+			"structure_name":        structureName,
+			"structure_slug":        slug,
+			"structure_description": structureDesc,
+			"modified_on":           now,
+			"modified_by":           tenantID,
+		}).Error
+}
+
+
+func (menu *MenuModel) DeleteStructure(structureID int, tenantID string, DB *gorm.DB) error {
+
+	now := time.Now().UTC()
+
+	return DB.Model(&TblStructures{}).
+		Where("id = ? AND tenant_id = ?", structureID, tenantID).
+		Updates(map[string]interface{}{
+			"is_deleted":  1,
+			"modified_on": now,
+			"modified_by": tenantID,
+		}).Error
+}
+
+func (menu *MenuModel) EditPageGroup(
+	id int,
+	groupName string,
+	groupSlug string,
+	structureID int,
+	tenantID string,
+	DB *gorm.DB,
+) error {
+
+	var existingGroup TblPageGroup
+
+	if err := DB.Table("tbl_page_groups").
+		Where("group_slug = ? AND structure_id = ? AND tenant_id = ? AND id != ? AND is_deleted = 0",
+			groupSlug, structureID, tenantID, id).
+		First(&existingGroup).Error; err == nil {
+
+		return errors.New("group slug already exists")
+	}
+
+	now := time.Now().UTC()
+
+	return DB.Model(&TblPageGroup{}).
+		Where("id = ? AND tenant_id = ?", id, tenantID).
+		Updates(map[string]interface{}{
+			"group_name":   groupName,
+			"group_slug":   groupSlug,
+			"structure_id": structureID,
+			"modified_on":  now,
+			"modified_by":  tenantID,
+		}).Error
+}
+
+func (menu *MenuModel) DeletePageGroup(pageGroupID int, tenantID string, DB *gorm.DB) error {
+
+	now := time.Now().UTC()
+
+	return DB.Model(&TblPageGroup{}).
+		Where("id = ? AND tenant_id = ?", pageGroupID, tenantID).
+		Updates(map[string]interface{}{
+			"is_deleted":  1,
+			"modified_on": now,
+			"modified_by": tenantID,
+		}).Error
+}
+
+func (menu *MenuModel) CheckPageGroupDuplicateSlug(
+	groupSlug string,
+	structureID,
+	groupID int,
+	tenantID string,
+	DB *gorm.DB,
+) (bool, error) {
+
+	var count int64
+
+	query := DB.Model(&TblPageGroup{}).
+		Where("group_slug = ? AND structure_id = ? AND tenant_id = ? AND is_deleted = 0",
+			groupSlug, structureID, tenantID)
+
+	if groupID != 0 {
+		query = query.Where("id != ?", groupID)
+	}
+
+	if err := query.Count(&count).Error; err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
+func (menu *MenuModel) DuplicateSlugBasedOnGroupStructure(
+	slug string,
+	groupID,
+	structureID int,
+	DB *gorm.DB,
+) (bool, error) {
+
+	var count int64
+
+	err := DB.Model(&TblTemplatePages{}).
+		Where("slug = ? AND group_id = ? AND structure_id = ? AND is_deleted = 0",
+			slug, groupID, structureID).
+		Count(&count).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
 }
