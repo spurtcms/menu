@@ -2,7 +2,6 @@ package menu
 
 import (
 	"errors"
-	"fmt"
 	"html/template"
 	"time"
 
@@ -315,7 +314,7 @@ type PageGroupResponse struct {
 }
 type PageTreeNode struct {
 	TblTemplatePages
-	Children []TblTemplatePages
+	Children []PageTreeNode `json:"children"`
 }
 
 type StructureDetailsResponse struct {
@@ -402,33 +401,40 @@ func (menu *MenuModel) Addstructuredata(structure TblStructures, DB *gorm.DB) (T
 
 func (menu *MenuModel) GetStructureDataBasedOnTenant(Tenantid string, DB *gorm.DB) ([]StructureListResponse, error) {
 
-	fmt.Println("GetStructureDataBasedOnTenantGetStructureDataBasedOnTenant tenant id", Tenantid)
 
 	var structures []StructureListResponse
 
 	err := DB.Table("tbl_structures s").
 		Select(`
-            s.id,
-            s.structure_name,
-            s.structure_slug,
-            s.structure_description,
-            s.tenant_id,
-            s.created_on,
- 
-            (
-                SELECT COUNT(*)
-                FROM tbl_template_pages p
-                WHERE p.structure_id = s.id AND is_deleted = 0
-                
-            ) as page_count,
- 
-            (
-                SELECT COUNT(*)
-                FROM tbl_page_groups g
-                WHERE g.structure_id = s.id AND is_deleted = 0
-            ) as page_group_count
-        `).
-		Where("s.tenant_id = ? AND s.is_deleted = 0", Tenantid).Order("s.id DESC").
+			s.id,
+			s.structure_name,
+			s.structure_slug,
+			s.structure_description,
+			s.tenant_id,
+			s.created_on,
+
+			(
+				SELECT COUNT(*)
+				FROM tbl_template_pages p
+				LEFT JOIN tbl_page_groups g
+					ON g.id = p.group_id
+				WHERE p.structure_id = s.id
+					AND p.is_deleted = 0
+					AND (
+						p.group_id = 0
+						OR g.is_deleted = 0
+					)
+			) AS page_count,
+
+			(
+				SELECT COUNT(*)
+				FROM tbl_page_groups g
+				WHERE g.structure_id = s.id
+					AND g.is_deleted = 0
+			) AS page_group_count
+		`).
+		Where("s.tenant_id = ? AND s.is_deleted = 0", Tenantid).
+		Order("s.id DESC").
 		Scan(&structures).Error
 
 	if err != nil {
@@ -438,19 +444,47 @@ func (menu *MenuModel) GetStructureDataBasedOnTenant(Tenantid string, DB *gorm.D
 	return structures, nil
 }
 
+func getPageTree(parentID int, DB *gorm.DB) []PageTreeNode {
+
+	var pages []TblTemplatePages
+	var nodes []PageTreeNode
+
+	err := DB.
+		Table("tbl_template_pages").
+		Where("parent_id = ? AND is_deleted = 0", parentID).
+		Order("id ASC").
+		Find(&pages).Error
+
+	if err != nil {
+		return nodes
+	}
+
+	for _, page := range pages {
+
+		node := PageTreeNode{
+			TblTemplatePages: page,
+			Children:         getPageTree(page.Id, DB),
+		}
+
+		nodes = append(nodes, node)
+	}
+
+	return nodes
+}
+
 func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB, tenant_id string) (StructureDetailsResponse, error) {
 
 	var response StructureDetailsResponse
 
-	// get structure details
-
+	// Get structure details
 	var structure TblStructures
 
 	err := DB.Debug().
 		Table("tbl_structures").
 		Where(
-			"structure_slug = ? AND tenant_id = ? ",
-			structure_slug, tenant_id,
+			"structure_slug = ? AND tenant_id = ?",
+			structure_slug,
+			tenant_id,
 		).
 		First(&structure).Error
 
@@ -458,11 +492,11 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB, t
 		return response, err
 	}
 
-	// assign structure data
-
 	response.TblStructures = structure
 
-	// get top-level direct pages (no group, no parent)
+	// ----------------------------
+	// Top-level pages
+	// ----------------------------
 
 	var topPages []TblTemplatePages
 
@@ -472,25 +506,24 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB, t
 			"structure_id = ? AND (group_id = 0 OR group_id IS NULL) AND parent_id = 0 AND is_deleted = 0",
 			structure.Id,
 		).
+		Order("id ASC").
 		Find(&topPages).Error
 
 	if err != nil {
 		return response, err
 	}
 
-	for _, p := range topPages {
-		var children []TblTemplatePages
-		DB.Debug().
-			Table("tbl_template_pages").
-			Where("parent_id = ? AND  is_deleted = 0", p.Id).
-			Find(&children)
+	for _, page := range topPages {
+
 		response.Pages = append(response.Pages, PageTreeNode{
-			TblTemplatePages: p,
-			Children:         children,
+			TblTemplatePages: page,
+			Children:         getPageTree(page.Id, DB),
 		})
 	}
 
-	// get page groups
+	// ----------------------------
+	// Groups
+	// ----------------------------
 
 	var groups []TblPageGroup
 
@@ -500,6 +533,7 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB, t
 			"structure_id = ? AND is_deleted = 0",
 			structure.Id,
 		).
+		Order("id ASC").
 		Find(&groups).Error
 
 	if err != nil {
@@ -510,46 +544,40 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB, t
 
 		var topGroupPages []TblTemplatePages
 
-		DB.Debug().
+		err := DB.Debug().
 			Table("tbl_template_pages").
 			Where(
 				"group_id = ? AND parent_id = 0 AND is_deleted = 0",
 				group.Id,
 			).
-			Find(&topGroupPages)
+			Order("id ASC").
+			Find(&topGroupPages).Error
+
+		if err != nil {
+			continue
+		}
 
 		var groupPageNodes []PageTreeNode
-		for _, p := range topGroupPages {
-			var children []TblTemplatePages
-			DB.Debug().
-				Table("tbl_template_pages").
-				Where("parent_id = ? AND is_deleted = 0", p.Id).
-				Find(&children)
+
+		for _, page := range topGroupPages {
+
 			groupPageNodes = append(groupPageNodes, PageTreeNode{
-				TblTemplatePages: p,
-				Children:         children,
+				TblTemplatePages: page,
+				Children:         getPageTree(page.Id, DB),
 			})
 		}
 
-		response.PageGroups = append(
-			response.PageGroups,
-
-			PageGroupResponse{
-
-				Id: group.Id,
-
-				GroupName: group.GroupName,
-
-				GroupSlug: group.GroupSlug,
-
-				Pages: groupPageNodes,
-			},
-		)
-
+		response.PageGroups = append(response.PageGroups, PageGroupResponse{
+			Id:        group.Id,
+			GroupName: group.GroupName,
+			GroupSlug: group.GroupSlug,
+			Pages:     groupPageNodes,
+		})
 	}
 
 	return response, nil
 }
+
 
 func (menu *MenuModel) GetPageBySlugbyId(DB *gorm.DB, pageid int, tenantid string) (page TblTemplatePages, err error) {
 
