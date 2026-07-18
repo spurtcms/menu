@@ -327,6 +327,8 @@ type StructureDetailsResponse struct {
 
 	// page groups with pages
 	PageGroups []PageGroupResponse `json:"page_groups"`
+
+	FirstPage TblTemplatePages `json:"first_page"`
 }
 
 type TblTemplatePagesResponce struct {
@@ -476,10 +478,12 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB, t
 
 	var response StructureDetailsResponse
 
-	// Get structure details
+	// ----------------------------
+	// Structure Details
+	// ----------------------------
 	var structure TblStructures
 
-	err := DB.Debug().
+	err := DB.
 		Table("tbl_structures").
 		Where(
 			"structure_slug = ? AND tenant_id = ?",
@@ -495,12 +499,49 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB, t
 	response.TblStructures = structure
 
 	// ----------------------------
+// Get First Page
+// ----------------------------
+var firstPage TblTemplatePages
+
+// Try direct page first
+err = DB.
+	Table("tbl_template_pages").
+	Where(`
+		structure_id = ?
+		AND (group_id = 0 OR group_id IS NULL)
+		AND parent_id = 0
+		AND is_deleted = 0
+	`, structure.Id).
+	Order("id ASC").
+	First(&firstPage).Error
+
+// If no direct page, try first page from first group
+if errors.Is(err, gorm.ErrRecordNotFound) {
+
+	err = DB.
+		Table("tbl_template_pages p").
+		Select("p.*").
+		Joins("JOIN tbl_page_groups g ON g.id = p.group_id").
+		Where(`
+			g.structure_id = ?
+			AND p.parent_id = 0
+			AND p.is_deleted = 0
+		`, structure.Id).
+		Order("g.id ASC, p.id ASC").
+		First(&firstPage).Error
+}
+
+// Only assign if a page was found.
+// If no page exists, FirstPage remains the zero value.
+if err == nil {
+	response.FirstPage = firstPage
+}
+	// ----------------------------
 	// Top-level pages
 	// ----------------------------
-
 	var topPages []TblTemplatePages
 
-	err = DB.Debug().
+	err = DB.
 		Table("tbl_template_pages").
 		Where(
 			"structure_id = ? AND (group_id = 0 OR group_id IS NULL) AND parent_id = 0 AND is_deleted = 0",
@@ -524,10 +565,9 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB, t
 	// ----------------------------
 	// Groups
 	// ----------------------------
-
 	var groups []TblPageGroup
 
-	err = DB.Debug().
+	err = DB.
 		Table("tbl_page_groups").
 		Where(
 			"structure_id = ? AND is_deleted = 0",
@@ -544,7 +584,7 @@ func (menu *MenuModel) GetStructureDetails(structure_slug string, DB *gorm.DB, t
 
 		var topGroupPages []TblTemplatePages
 
-		err := DB.Debug().
+		err := DB.
 			Table("tbl_template_pages").
 			Where(
 				"group_id = ? AND parent_id = 0 AND is_deleted = 0",
