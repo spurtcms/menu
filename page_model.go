@@ -757,3 +757,56 @@ func (menu *MenuModel) DuplicateSlugBasedOnGroupStructure(
 
 	return count > 0, nil
 }
+
+type StructurePageResponse struct {
+	Structure TblStructures
+	Pages     []TblTemplatePages
+}
+
+func (menu *MenuModel) GetStructuresWithPages(
+	DB *gorm.DB,
+	tenantID string,
+) ([]StructurePageResponse, error) {
+
+	var structures []TblStructures
+
+	err := DB.
+		Where(
+			"tenant_id = ? AND is_deleted = 0",
+			tenantID,
+		).
+		Order("id ASC").
+		Find(&structures).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result []StructurePageResponse
+
+	for _, structure := range structures {
+
+		var pages []TblTemplatePages
+
+		err := DB.
+			Where(
+				"tenant_id = ? AND structure_id = ? AND is_deleted = 0 AND status = 1",
+				tenantID,
+				structure.Id,
+			).
+			Order("order_index ASC").
+			Find(&pages).Error
+
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, StructurePageResponse{
+			Structure: structure,
+			Pages:     pages,
+		})
+	}
+
+	return result, nil
+}
+

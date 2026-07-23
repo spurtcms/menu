@@ -465,3 +465,21 @@ func (menu *Menu) DuplicateSlugBasedOnGroupStructure(slug string, groupID, struc
 		menu.DB,
 	)
 }
+
+
+func (menu *Menu) GetStructuresWithPages(tenantID string,
+) ([]StructurePageResponse, error) {
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return nil, AuthError
+	}
+	pagedetail, err := menumodel.GetStructuresWithPages(menu.DB, tenantID)
+
+	if err != nil {
+
+		return pagedetail, err
+
+	}
+	return pagedetail, nil
+
+}
