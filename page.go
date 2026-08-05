@@ -173,6 +173,22 @@ func (menu *Menu) GetPageBySlug(slug string, tenantid string) (TblTemplatePages,
 	return pagedetail, nil
 
 }
+func (menu *Menu) GetPageBySlugANDParentId(slug string, tenantid string,parentid int) (TblTemplatePages, error) {
+
+	if AuthError := AuthandPermission(menu); AuthError != nil {
+
+		return TblTemplatePages{}, AuthError
+	}
+	pagedetail, err := menumodel.GetPageBySlugANDParentId(menu.DB, slug, tenantid,parentid)
+
+	if err != nil {
+
+		return TblTemplatePages{}, err
+
+	}
+	return pagedetail, nil
+
+}
 
 func (menu *Menu) GetMenusByPageId(pageid int, tenantid string) (TblMenus, error) {
 

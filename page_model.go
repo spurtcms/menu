@@ -165,6 +165,17 @@ func (menu *MenuModel) GetPageBySlug(DB *gorm.DB, pageslug string, tenantid stri
 
 }
 
+func (menu *MenuModel) GetPageBySlugANDParentId(DB *gorm.DB, pageslug string, tenantid string,parentid int) (page TblTemplatePages, err error) {
+
+	if err := DB.Table("tbl_template_pages").Where("is_deleted = 0 and slug=?  and tenant_id=? and parent_id=?", pageslug, tenantid,parentid).Order("id asc").Find(&page).Error; err != nil {
+
+		return TblTemplatePages{}, err
+	}
+
+	return page, nil
+
+}
+
 func (menu *MenuModel) GetMenusByPageId(DB *gorm.DB, pageid int, tenantid string) (menus TblMenus, err error) {
 
 	if err := DB.Table("tbl_menus").Where("is_deleted = 0 and type=? and tenant_id=? and type_id=?", "pages", tenantid, pageid).Order("id asc").Find(&menus).Error; err != nil {
