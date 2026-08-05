@@ -287,6 +287,7 @@ type TblStructures struct {
 	CreatedBy            string    `gorm:"type:character varying"`
 	ModifiedOn           time.Time `gorm:"type:timestamp without time zone;DEFAULT:NULL"`
 	IsDeleted            int       `gorm:"type:integer;DEFAULT:0"`
+	LandingPageSlug      string    `gorm:"type:character varying"`
 	ModifiedBy           string    `gorm:"type:character varying"`
 }
 type StructureListResponse struct {
