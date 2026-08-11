@@ -402,7 +402,7 @@ func (menu *Menu) GetPageBySlugbyId(page_id int, tenantid string) (TblTemplatePa
 }
 
 
-func (menu *Menu) EditStructure(structureID int, structureName, structureDesc, tenantID, slug string) error {
+func (menu *Menu) EditStructure(structureID int, structureName, structureDesc, tenantID,metatitle,metadescription,metakeywords, slug string) error {
 
 	if AuthError := AuthandPermission(menu); AuthError != nil {
 		return AuthError
@@ -413,6 +413,9 @@ func (menu *Menu) EditStructure(structureID int, structureName, structureDesc, t
 		structureName,
 		structureDesc,
 		tenantID,
+		metatitle,
+		metadescription,
+		metakeywords,
 		slug,
 		menu.DB,
 	)

@@ -289,12 +289,21 @@ type TblStructures struct {
 	IsDeleted            int       `gorm:"type:integer;DEFAULT:0"`
 	LandingPageSlug      string    `gorm:"type:character varying"`
 	ModifiedBy           string    `gorm:"type:character varying"`
+	MetaTitle       string    `gorm:"type:character varying"`
+	MetaDescription string    `gorm:"type:character varying"`
+	MetaKeywords    string    `gorm:"type:character varying"`
 }
 type StructureListResponse struct {
 	ID                   int       `json:"id"`
 	StructureName        string    `json:"structure_name"`
 	StructureSlug        string    `json:"structure_slug"`
 	StructureDescription string    `json:"structure_description"`
+
+	
+	MetaTitle       string    `json:"meta_title"`
+	MetaDescription string    `json:"meta_description"`
+	MetaKeywords    string     `json:"meta_keywords"`
+	
 	CreatedOn            time.Time `json:"created_on"`
 	TenantId             string    `json:"tenant_id"`
 	CreatedOnFormat      string    `json:"created_on_format" gorm:"-"`
@@ -415,7 +424,6 @@ func (menu *MenuModel) Addstructuredata(structure TblStructures, DB *gorm.DB) (T
 
 func (menu *MenuModel) GetStructureDataBasedOnTenant(Tenantid string, DB *gorm.DB) ([]StructureListResponse, error) {
 
-
 	var structures []StructureListResponse
 
 	err := DB.Table("tbl_structures s").
@@ -424,6 +432,9 @@ func (menu *MenuModel) GetStructureDataBasedOnTenant(Tenantid string, DB *gorm.D
 			s.structure_name,
 			s.structure_slug,
 			s.structure_description,
+			s.meta_title,
+			s.meta_description,
+			s.meta_keywords,
 			s.tenant_id,
 			s.created_on,
 
@@ -644,27 +655,32 @@ func (menu *MenuModel) GetPageBySlugbyId(DB *gorm.DB, pageid int, tenantid strin
 
 
 func (menu *MenuModel) EditStructure(
-	structureID int,
-	structureName,
-	structureDesc,
-	tenantID,
-	slug string,
-	DB *gorm.DB,
+    structureID int,
+    structureName,
+    structureDesc,
+    tenantID,
+    metatitle,
+    metadescription,
+    metakeywords,
+    slug string,
+    DB *gorm.DB,
 ) error {
 
-	now := time.Now().UTC()
+    now := time.Now().UTC()
 
-	return DB.Model(&TblStructures{}).
-		Where("id = ? AND tenant_id = ?", structureID, tenantID).
-		Updates(map[string]interface{}{
-			"structure_name":        structureName,
-			"structure_slug":        slug,
-			"structure_description": structureDesc,
-			"modified_on":           now,
-			"modified_by":           tenantID,
-		}).Error
+    return DB.Model(&TblStructures{}).
+        Where("id = ? AND tenant_id = ?", structureID, tenantID).
+        Updates(map[string]interface{}{
+            "structure_name":        structureName,
+            "structure_slug":        slug,
+            "structure_description": structureDesc,
+            "modified_on":           now,
+            "modified_by":           tenantID,
+            "meta_title":            metatitle,
+            "meta_description":      metadescription,
+            "meta_keywords":          metakeywords,
+        }).Error
 }
-
 
 func (menu *MenuModel) DeleteStructure(structureID int, tenantID string, DB *gorm.DB) error {
 
